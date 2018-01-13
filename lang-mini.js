@@ -1148,14 +1148,14 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 	var arr_functions_params_pairs, callback, return_params = false;
 	var delay;
 
-	console.log('sig', sig);
+	//console.log('sig', sig);
 
 	var num_parallel = 1;
-	console.log('a.l', a.l);
+	//console.log('* a.l', a.l);
 
 	if (a.l == 1) {
-		console.log('a', a);
-		console.log('a[0].length', a[0].length);
+		//console.log('a', a);
+		//console.log('a[0].length', a[0].length);
 
 
 	}
@@ -1287,6 +1287,7 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 				params = [];
 			} else {
 				if (pair) {
+					//console.log('pair.length', pair.length);
 					if (pair.length == 1) {
 
 					}
@@ -1314,6 +1315,12 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 					// function, array, function
 					if (pair.length == 3) {
 						// [fn, params, fn_callback]
+
+						//console.log('tof(pair[0])', tof(pair[0]));
+						//console.log('tof(pair[1])', tof(pair[1]));
+						//console.log('tof(pair[2])', tof(pair[2]));
+
+
 						// [context, fn, params]
 
 						if (tof(pair[0]) === 'function' && tof(pair[1]) === 'array' && tof(pair[2]) === 'function') {

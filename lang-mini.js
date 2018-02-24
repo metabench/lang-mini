@@ -1,15 +1,13 @@
-
-
-var are_equal = require('deep-equal');
+let are_equal = require('deep-equal');
 
 if (typeof window === 'undefined') {
 	//exports.foo = {};
-	var Stream = require('stream');
+	let Stream = require('stream');
 } else {
 	//window.foo = {};
 }
 
-var each = (collection, fn, context) => {
+let each = (collection, fn, context) => {
 	// each that puts the results in an array or dict.
 	if (collection) {
 
@@ -20,14 +18,15 @@ var each = (collection, fn, context) => {
 		// could have a break function that stops the loop from continuing.
 		//  that would be useful as a third parameter that can get called.
 		//  stop() function
-		var ctu = true;
-		var stop = function() {
+		let ctu = true;
+		let stop = function () {
 			ctu = false;
 		};
 
 		if (is_array(collection)) {
-			var res = [], res_item;
-			for (var c = 0, l = collection.length; c < l; c++) {
+			let res = [],
+				res_item;
+			for (let c = 0, l = collection.length; c < l; c++) {
 				res_item;
 				if (ctu == false) break;
 
@@ -41,7 +40,7 @@ var each = (collection, fn, context) => {
 			}
 			return res;
 		} else {
-			var name, res = {};
+			let name, res = {};
 			for (name in collection) {
 				if (ctu == false) break;
 				if (context) {
@@ -55,22 +54,22 @@ var each = (collection, fn, context) => {
 	}
 };
 
-var is_array = Array.isArray;
+let is_array = Array.isArray;
 
-var is_dom_node = function isDomNode(obj) {
+let is_dom_node = function isDomNode(obj) {
 	return (!!obj && typeof obj.nodeType != 'undefined' && typeof obj.childNodes != 'undefined');
 };
 
-var get_truth_map_from_arr = function(arr) {
-	var res = {};
-	each(arr, function(v, i) {
+let get_truth_map_from_arr = function (arr) {
+	let res = {};
+	each(arr, function (v, i) {
 		res[v] = true;
 	});
 	return res;
 };
-var get_arr_from_truth_map = function(truth_map) {
-	var res = [];
-	each(truth_map, function(v, i) {
+let get_arr_from_truth_map = function (truth_map) {
+	let res = [];
+	each(truth_map, function (v, i) {
 		res.push(i);
 	});
 	return res;
@@ -78,9 +77,9 @@ var get_arr_from_truth_map = function(truth_map) {
 
 // not a truth map because 0 == false. Could use this but do different
 // check, like is_defined.
-var get_map_from_arr = function(arr) {
-	var res = {};
-	for (var c = 0, l = arr.length; c < l; c++) {
+let get_map_from_arr = function (arr) {
+	let res = {};
+	for (let c = 0, l = arr.length; c < l; c++) {
 		res[arr[c]] = c;
 	}
 	//each(arr, function(v, i) {
@@ -89,11 +88,11 @@ var get_map_from_arr = function(arr) {
 	return res;
 }
 
-//var arrSliceCall = Array.prototype.slice.call;
+//let arrSliceCall = Array.prototype.slice.call;
 
-var arr_like_to_arr = function(arr_like) {
-	var res = new Array(arr_like.length);
-	for (var c = 0, l = arr_like.length; c < l; c++) {
+let arr_like_to_arr = function (arr_like) {
+	let res = new Array(arr_like.length);
+	for (let c = 0, l = arr_like.length; c < l; c++) {
 		//res.push(arr_like[c]);
 		res[c] = arr_like[c];
 	};
@@ -106,7 +105,7 @@ var arr_like_to_arr = function(arr_like) {
 //  But a more advanced jsgui level could do this check, and have its own tof function.
 //  That would be jsgui-lang-html has the check for is control.
 
-var is_ctrl = function(obj) {
+let is_ctrl = function (obj) {
 
 	// something indicating all controls are controls?
 	return (typeof obj != 'undefined' && obj != null && is_defined(obj.__type_name) && is_defined(obj.content) && is_defined(obj.dom));
@@ -117,8 +116,8 @@ var is_ctrl = function(obj) {
 //  May make node version of jsgui-lang-essentials, jsgui-node-lang-essentials.
 
 // may change to the jq_type code.
-var tof = (obj, t1) => {
-	var res = t1 || typeof obj;
+let tof = (obj, t1) => {
+	let res = t1 || typeof obj;
 
 	if (res === 'number' || res === 'string' || res === 'function' || res === 'boolean') {
 		return res;
@@ -135,11 +134,11 @@ var tof = (obj, t1) => {
 			//console.log('typeof obj ' + typeof obj);
 			//console.log('obj === null ' + (obj === null));
 
-            if (obj.__type) {
-                return obj.__type;
-            } else if (obj.__type_name) {
-                return obj.__type_name;
-            } else {
+			if (obj.__type) {
+				return obj.__type;
+			} else if (obj.__type_name) {
+				return obj.__type_name;
+			} else {
 
 				if (is_ctrl(obj)) {
 					//return res;
@@ -188,28 +187,29 @@ var tof = (obj, t1) => {
 
 // Bug for a test case - checking if a function is an instanceOf stream.
 
-var atof = (arr) => {
+let atof = (arr) => {
 
-	var res = new Array(arr.length);
+	let res = new Array(arr.length);
 	//each(arr, function(v, i) {
 	//	res.push(tof(v));
 	//});
-	for (var c = 0, l = arr.length; c < l; c++) {
+	for (let c = 0, l = arr.length; c < l; c++) {
 		//res.push(tof(arr[c]));
 		res[c] = tof(arr[c]);
 	}
 	return res;
 };
 
-var is_defined = (value) => {
-	// tof or typeof
+let is_defined = (value) => {
+		// tof or typeof
 
-	return typeof (value) != 'undefined';
-}, isdef = is_defined;
+		return typeof (value) != 'undefined';
+	},
+	isdef = is_defined;
 
-var is_data_object = function(obj) {
+let is_data_object = function (obj) {
 
-	if(obj) {
+	if (obj) {
 		if (obj.__type == 'data_object') return true;
 		if (obj.__type == 'collection') return true;
 	}
@@ -222,7 +222,7 @@ var is_data_object = function(obj) {
 
 // will test for control using similar means as well.
 
-var is_collection = function(obj) {
+let is_collection = function (obj) {
 	//if (obj.__type == 'data_object') return true;
 
 	if (obj) {
@@ -236,17 +236,18 @@ var is_collection = function(obj) {
 
 }
 
-var stringify = JSON.stringify;
+let stringify = JSON.stringify;
 
 
 
-var get_a_sig = (a) => {
+let get_a_sig = (a) => {
 	// For arguments
 	// String building optimized for newer JS?
 
-	var c = 0, l = a.length;
-	var res = '[';
-	var first = true;
+	let c = 0,
+		l = a.length;
+	let res = '[';
+	let first = true;
 	for (c = 0; c < l; c++) {
 		if (!first) {
 			res = res + ',';
@@ -262,7 +263,7 @@ var get_a_sig = (a) => {
 }
 
 
-var get_item_sig = (i, arr_depth) => {
+let get_item_sig = (i, arr_depth) => {
 
 	// an option about how far into the array to look.
 
@@ -289,8 +290,8 @@ var get_item_sig = (i, arr_depth) => {
 	// is it an array?
 
 
-	var res;
-	var t1 = typeof i;
+	let res;
+	let t1 = typeof i;
 
 	// could possibly have two functions - one that will be very fast, and a more dynamic, slower one.
 
@@ -305,7 +306,7 @@ var get_item_sig = (i, arr_depth) => {
 	} else if (t1 === 'function') {
 		res = 'f';
 	} else {
-		var t = tof(i, t1);
+		let t = tof(i, t1);
 
 		//if (i === 0) {
 		//console.log('i ' + i);
@@ -326,7 +327,7 @@ var get_item_sig = (i, arr_depth) => {
 			// look into it with one nested level...
 			if (arr_depth) {
 				res = '['
-				for (var c = 0, l = i.length; c < l; c++) {
+				for (let c = 0, l = i.length; c < l; c++) {
 					if (c > 0) res = res + ',';
 					res = res + get_item_sig(i[c], arr_depth - 1);
 				}
@@ -422,9 +423,9 @@ var get_item_sig = (i, arr_depth) => {
 						}
 
 
-                    } else {
+					} else {
 
-                        res = '?';
+						res = '?';
 
 
 						//throw 'Unexpected object type ' + t;
@@ -457,7 +458,7 @@ var get_item_sig = (i, arr_depth) => {
 };
 
 
-var trim_sig_brackets = function(sig) {
+let trim_sig_brackets = function (sig) {
 	if (tof(sig) === 'string') {
 		if (sig.charAt(0) == '[' && sig.charAt(sig.length - 1) == ']') {
 			return sig.substring(1, sig.length - 1);
@@ -467,11 +468,11 @@ var trim_sig_brackets = function(sig) {
 	}
 };
 
-var arr_trim_undefined = function(arr_like) {
-	var res = [];
-	var last_defined = -1;
-	var t, v;
-	for (var c = 0, l = arr_like.length; c < l; c++) {
+let arr_trim_undefined = function (arr_like) {
+	let res = [];
+	let last_defined = -1;
+	let t, v;
+	for (let c = 0, l = arr_like.length; c < l; c++) {
 		v = arr_like[c];
 		t = tof(v);
 		if (t == 'undefined') {
@@ -481,7 +482,7 @@ var arr_trim_undefined = function(arr_like) {
 		}
 	}
 
-	for (var c = 0, l = arr_like.length; c < l; c++) {
+	for (let c = 0, l = arr_like.length; c < l; c++) {
 		if (c <= last_defined) {
 			res.push(arr_like[c]);
 		}
@@ -489,8 +490,8 @@ var arr_trim_undefined = function(arr_like) {
 	return res;
 };
 
-var functional_polymorphism = function(options, fn) {
-	var a0 = arguments;
+let functional_polymorphism = function (options, fn) {
+	let a0 = arguments;
 	if (a0.length === 1) {
 		fn = a0[0];
 		options = null;
@@ -498,20 +499,20 @@ var functional_polymorphism = function(options, fn) {
 
 	//is there a this?
 
-	//var that = this;
-	//var _super = that._super;
+	//let that = this;
+	//let _super = that._super;
 
 	// not having access to this here
-	var arr_slice = Array.prototype.slice;
-	var arr, sig, a2, l, a;
+	let arr_slice = Array.prototype.slice;
+	let arr, sig, a2, l, a;
 
-	return function() {
+	return function () {
 
 		//that = this;
 
 		// not sure we want super here?
 		//  We hardly ever use this, it would slow things down.
-		//var _super = that._super;
+		//let _super = that._super;
 
 		a = arguments;
 		// and if there is an array of arguments given... give as one
@@ -527,13 +528,13 @@ var functional_polymorphism = function(options, fn) {
 			//return fn.call(that, a2, sig, _super);
 			return fn.call(this, a2, sig);
 		} else if (l > 1) {
-			//var arr = arr_like_to_arr(a);
-			//var arr = arr_slice.call(a, 0);
+			//let arr = arr_like_to_arr(a);
+			//let arr = arr_slice.call(a, 0);
 			//
 			arr = arr_trim_undefined(arr_slice.call(a, 0));
 
 			//arr = arr_trim_undefined(arr);
-			//var sig = get_item_sig(arr, 1);
+			//let sig = get_item_sig(arr, 1);
 			sig = get_item_sig(arr, 1);
 			//arr.l = l;
 			arr.l = arr.length;
@@ -549,10 +550,10 @@ var functional_polymorphism = function(options, fn) {
 	}
 };
 
-var fp = functional_polymorphism;
+let fp = functional_polymorphism;
 
 
-var arrayify = fp(function(a, sig) {
+let arrayify = fp(function (a, sig) {
 	// but when the function has it's last parameter as a function...
 	//  can we assume it is a callback?
 	// when given a whole bunch of strings (or numbers) these can be used to make a map for the results.
@@ -565,18 +566,22 @@ var arrayify = fp(function(a, sig) {
 
 	// what about a pf function that provides an 'a' map.
 	// has whatever properties have been provided and asked for.
-	var param_index, num_parallel = 1, delay = 0, fn;
+	let param_index, num_parallel = 1,
+		delay = 0,
+		fn;
 	// (param_index, fn)
-	var res;
-	var process_as_fn = function() {
+	let res;
+	let process_as_fn = function () {
 		//console.log('process_as_fn');
-		res = function() {
+		res = function () {
 			// could use pf here? but maybe not
 			//console.log('arguments.length ' + arguments.length);
 			//console.log('arguments ' + stringify(arguments));
-			var a = arr_like_to_arr(arguments), ts = atof(a), t = this;
+			let a = arr_like_to_arr(arguments),
+				ts = atof(a),
+				t = this;
 			//console.log('a ' + stringify(a));
-			var last_arg = a[a.length - 1];
+			let last_arg = a[a.length - 1];
 			//console.log('last_arg ' + last_arg);
 			//console.log('a.length ' + a.length);
 			if (tof(last_arg) == 'function') {
@@ -587,26 +592,26 @@ var arrayify = fp(function(a, sig) {
 				//console.log('ts[param_index] ' + ts[param_index]);
 
 				if (typeof param_index !== 'undefined' && ts[param_index] == 'array') {
-					// var res = [], a2 = a.slice(1); // don't think this makes
+					// let res = [], a2 = a.slice(1); // don't think this makes
 					// a copy of the array.
-					var res = []; // don't think this makes a copy of the
+					let res = []; // don't think this makes a copy of the
 					// array.
 					// console.log('fn ' + fn);
 
 					// but we can make this process a function with a callback.
 
 
-					var fns = [];
+					let fns = [];
 
-					each(a[param_index], function(v, i) {
-						var new_params = a.slice(0, a.length - 1);
+					each(a[param_index], function (v, i) {
+						let new_params = a.slice(0, a.length - 1);
 						new_params[param_index] = v;
 						// the rest of the parameters as normal
 
 						// context, function, params
 						fns.push([t, fn, new_params]);
 
-						//var result = fn.apply(t, new_params);
+						//let result = fn.apply(t, new_params);
 						// console.log('result ' + stringify(result));
 						//res.push(result);
 					});
@@ -616,9 +621,9 @@ var arrayify = fp(function(a, sig) {
 					//console.log('delay', delay);
 					//throw 'stop';
 
-					call_multiple_callback_functions(fns, num_parallel, delay, function(err, res) {
-                        if (err) {
-                            console.trace();
+					call_multiple_callback_functions(fns, num_parallel, delay, function (err, res) {
+						if (err) {
+							console.trace();
 							throw err;
 						} else {
 							//
@@ -633,10 +638,10 @@ var arrayify = fp(function(a, sig) {
 
 							// concat all of the arrays in the results.
 
-							var a = [];
+							let a = [];
 							a = a.concat.apply(a, res);
 
-							var callback = last_arg;
+							let callback = last_arg;
 							//console.log('last_arg ' + last_arg);
 							callback(null, a);
 						}
@@ -649,27 +654,27 @@ var arrayify = fp(function(a, sig) {
 				//console.log('arguments', arguments);
 
 				if (typeof param_index !== 'undefined' && ts[param_index] == 'array') {
-					// var res = [], a2 = a.slice(1); // don't think this makes
+					// let res = [], a2 = a.slice(1); // don't think this makes
 					// a copy of the array.
-					var res = []; // don't think this makes a copy of the
+					let res = []; // don't think this makes a copy of the
 					// array.
 					// console.log('fn ' + fn);
 					// but we can make this process a function with a callback.
 
-					for (var c = 0, l = a[param_index].length; c < l; c++) {
+					for (let c = 0, l = a[param_index].length; c < l; c++) {
 						//a[param_index] = a[param_index][c];
 						a[param_index] = arguments[param_index][c];
-						var result = fn.apply(t, a);
+						let result = fn.apply(t, a);
 						// console.log('result ' + stringify(result));
 						res.push(result);
 					}
 
 					/*
 					 each(a[param_index], function(v, i) {
-					 //var new_params = a;
+					 //let new_params = a;
 					 a[param_index] = v;
 					 // the rest of the parameters as normal
-					 var result = fn.apply(t, a);
+					 let result = fn.apply(t, a);
 					 // console.log('result ' + stringify(result));
 					 res.push(result);
 					 });
@@ -690,8 +695,8 @@ var arrayify = fp(function(a, sig) {
 	}
 
 	if (sig == '[o]') {
-		var res = [];
-		each(a[0], function(v, i) {
+		let res = [];
+		each(a[0], function (v, i) {
 			res.push([v, i]);
 		});
 	} else if (sig == '[f]') {
@@ -718,27 +723,27 @@ var arrayify = fp(function(a, sig) {
 
 // that target function could take a callback(err, res) parameter.
 //  that means, when calling the function, if the last function is a callback, we can act differently.
-var mapify = (target) => {
-	var tt = tof(target);
+let mapify = (target) => {
+	let tt = tof(target);
 	if (tt == 'function') {
-		var res = fp(function(a, sig) {
-			var that = this;
+		let res = fp(function (a, sig) {
+			let that = this;
 			//console.log('mapified fn sig ' + sig);
 			if (sig == '[o]') {
-				var map = a[0];
-				each(map, function(v, i) {
+				let map = a[0];
+				each(map, function (v, i) {
 					//fn.call(that, v, i);
 					target.call(that, v, i);
 				});
 			} else if (sig == '[o,f]') {
-				var map = a[0];
+				let map = a[0];
 				// call_multi on the function, using the items in the map, calling with 1 param (+callback).
-				var callback = a[1];
-				var fns = [];
-				each(map, function(v, i) {
+				let callback = a[1];
+				let fns = [];
+				each(map, function (v, i) {
 					fns.push([target, [v, i]]);
 				});
-				call_multi(fns, function(err_multi, res_multi) {
+				call_multi(fns, function (err_multi, res_multi) {
 					if (err_multi) {
 						callback(err_multi);
 					} else {
@@ -749,7 +754,7 @@ var mapify = (target) => {
 			} else if (a.length >= 2) {
 				// applying the target function with a callback...
 
-				//var last_arg = a[a.length - 1];
+				//let last_arg = a[a.length - 1];
 
 				// could take functions, but not dealing with objects may be
 				// tricky?
@@ -772,16 +777,16 @@ var mapify = (target) => {
 
 		// could just be given an array to mapify.
 
-		var res = {};
+		let res = {};
 
 		if (arguments.length == 1) {
 
 			if (is_arr_of_strs(target)) {
-				each(target, function(v, i) {
+				each(target, function (v, i) {
 					res[v] = true;
 				});
 			} else {
-				each(target, function(v, i) {
+				each(target, function (v, i) {
 					res[v[0]] = v[1];
 				});
 			}
@@ -790,8 +795,8 @@ var mapify = (target) => {
 			// dealing with [name, value] pairs
 
 		} else {
-			var by_property_name = arguments[1];
-			each(target, function(v, i) {
+			let by_property_name = arguments[1];
+			each(target, function (v, i) {
 				res[v[by_property_name]] = v;
 			});
 		}
@@ -806,22 +811,22 @@ var mapify = (target) => {
 
 };
 
-var clone = fp((a, sig) => {
-	var obj = a[0];
+let clone = fp((a, sig) => {
+	let obj = a[0];
 	if (a.l == 1) {
 
 
-		var t = tof(obj);
+		let t = tof(obj);
 		if (t == 'array') {
 
 			// slice removes undefined items
 			// console.log('clone obj ' + stringify(obj));
 			// console.log('obj.length ' + obj.length);
 
-			var res = [];
+			let res = [];
 
 
-			each(obj, function(v) {
+			each(obj, function (v) {
 				//console.log('i ' + i);
 				res.push(clone(v));
 			});
@@ -854,8 +859,8 @@ var clone = fp((a, sig) => {
 		}
 
 	} else if (a.l == 2 && tof(a[1]) == 'number') {
-		var res = [];
-		for (var c = 0; c < a[1]; c++) {
+		let res = [];
+		for (let c = 0; c < a[1]; c++) {
 			res.push(clone(obj));
 		}
 		return res;
@@ -867,15 +872,15 @@ var clone = fp((a, sig) => {
 
 /*
 
-var are_equal = () => {
-	var a = arguments;
+let are_equal = () => {
+	let a = arguments;
 	console.log('a.length ' + a.length);
 	if (a.length === 0)
 		return null;
 	if (a.length === 1) {
-		var t = jsgui.tof(a[0]);
+		let t = jsgui.tof(a[0]);
 		if (t == 'array' && a[0].length > 1) {
-			for (var c = 1, l = a[0].length; c < l; c++) {
+			for (let c = 1, l = a[0].length; c < l; c++) {
 				if (!jsgui.are_equal(a[0][0], a[0][c]))
 					return false;
 			}
@@ -884,16 +889,16 @@ var are_equal = () => {
 		}
 	}
 	if (a.length === 2) {
-		var ts = jsgui.atof(a);
+		let ts = jsgui.atof(a);
 		if (ts[0] != ts[1])
 			return false;
-		var t = ts[0];
+		let t = ts[0];
 		if (t == 'string' || t == 'number')
 			return a[0] == a[1];
 		if (t == 'array') {
 			if (a[0].length != a[1].length)
 				return false;
-			for (var c = 0, l = a[0].length; c < l; c++) {
+			for (let c = 0, l = a[0].length; c < l; c++) {
 				if (!jsgui.are_equal(a[0][c], a[1][c]))
 					return false;
 			}
@@ -901,20 +906,20 @@ var are_equal = () => {
 		} else if (typeof a[0] == 'object') {
 			// get the dict of keys for both, compare the lengths, (compare
 			// the keys), get merged key map
-			var merged_key_truth_map = {};
-			var c1 = 0;
+			let merged_key_truth_map = {};
+			let c1 = 0;
 			each(a[0], function (v, i) {
 				merged_key_truth_map[i] = true;
 				c1++;
 			});
-			var c2 = 0;
+			let c2 = 0;
 			each(a[1], function (v, i) {
 				merged_key_truth_map[i] = true;
 				c2++;
 			});
 			if (c1 != c2)
 				return false;
-			var objects_are_equal = true;
+			let objects_are_equal = true;
 			each(merged_key_truth_map, function (v, i) {
 				if (!jsgui.are_equal(a[0][i], a[1][i])) {
 					objects_are_equal = false;
@@ -929,11 +934,11 @@ var are_equal = () => {
 	if (a.length > 2) {
 		// Commented this out to remove infinite loop.
 
-		//var ts = jsgui.atof(a);
+		//let ts = jsgui.atof(a);
 		//if (!jsgui.are_equal(ts))
 		//	return false;
-		var o = a[0];
-		for (var c = 1, l = a.length; c < l; c++) {
+		let o = a[0];
+		for (let c = 1, l = a.length; c < l; c++) {
 			if (a[c] !== o)
 				return false;
 		}
@@ -945,23 +950,25 @@ var are_equal = () => {
 
 
 
-var set_vals = function(obj, map) {
-	each(map, function(v, i) {
+let set_vals = function (obj, map) {
+	each(map, function (v, i) {
 		obj[i] = v;
 	});
 };
 
 
-var ll_set = function(obj, prop_name, prop_value) {
+let ll_set = function (obj, prop_name, prop_value) {
 	// not setting sub-properties specifically. sub-properties are
 	// properties of a kind
 	// however will not use ll_set inappropriately eg border.width works
 	// differently
 
-	var arr = prop_name.split('.');
+	let arr = prop_name.split('.');
 	//console.log('arr ' + arr);
-	var c = 0, l = arr.length;
-	var i = obj._ || obj, s;
+	let c = 0,
+		l = arr.length;
+	let i = obj._ || obj,
+		s;
 
 	while (c < l) {
 		s = arr[c];
@@ -986,10 +993,10 @@ var ll_set = function(obj, prop_name, prop_value) {
 };
 
 
-var ll_get = function(a0, a1) {
+let ll_get = function (a0, a1) {
 
 	if (a0 && a1) {
-		var i = a0._ || a0;
+		let i = a0._ || a0;
 
 		if (a1 == '.') {
 			//(function() {
@@ -1006,12 +1013,14 @@ var ll_get = function(a0, a1) {
 			//return ll_get_inner(a0, a1);
 
 
-			var arr = a1.split('.');
+			let arr = a1.split('.');
 
 			// shows how much the ll functions get used when they get logged!
 
 			//console.log('ll_get arr ' + arr);
-			var c = 0, l = arr.length, s;
+			let c = 0,
+				l = arr.length,
+				s;
 
 			while (c < l) {
 				s = arr[c];
@@ -1048,11 +1057,11 @@ var ll_get = function(a0, a1) {
 	}
 };
 
-var truth = function(value) {
+let truth = function (value) {
 	return value === true;
 };
 
-var iterate_ancestor_classes = function(obj, callback) {
+let iterate_ancestor_classes = function (obj, callback) {
 
 	/*
 	 if (obj.constructor &! obj._superclass) {
@@ -1066,9 +1075,9 @@ var iterate_ancestor_classes = function(obj, callback) {
 	 }
 	 */
 
-	var ctu = true;
+	let ctu = true;
 
-	var stop = function() {
+	let stop = function () {
 		ctu = false;
 	}
 
@@ -1080,12 +1089,13 @@ var iterate_ancestor_classes = function(obj, callback) {
 
 
 
-var is_arr_of_t = function(obj, type_name) {
-	var t = tof(obj), tv;
+let is_arr_of_t = function (obj, type_name) {
+	let t = tof(obj),
+		tv;
 	if (t == 'array') {
-		var res = true;
+		let res = true;
 
-		each(obj, function(v, i) {
+		each(obj, function (v, i) {
 			//console.log('2) v ' + stringify(v));
 			tv = tof(v);
 			//console.log('tv ' + tv);
@@ -1099,20 +1109,20 @@ var is_arr_of_t = function(obj, type_name) {
 
 }
 
-var is_arr_of_arrs = function(obj) {
+let is_arr_of_arrs = function (obj) {
 	return is_arr_of_t(obj, 'array');
 }
 
 
-var is_arr_of_strs = function(obj) {
+let is_arr_of_strs = function (obj) {
 	//console.log('obj ' + stringify(obj));
 	return is_arr_of_t(obj, 'string');
 }
 
 
-var input_processors = {};
+let input_processors = {};
 
-var output_processors = {};
+let output_processors = {};
 
 // for data types...
 //  don't look up the data types directly for the moment.
@@ -1120,7 +1130,7 @@ var output_processors = {};
 
 
 
-//var output_processors = {};
+//let output_processors = {};
 
 // Possibly validators here too.
 //  They may well get used for data structures that deal with these data types. The typed constraints could make use of them (the basis that is set in essentials)
@@ -1135,7 +1145,7 @@ var output_processors = {};
 //  That seems like a fairly big goal, want to get these things working on a simpler level and in collections.
 //  Will use some kind of polymorphic rearrangement to rearrange where suitable.
 
-var call_multiple_callback_functions = fp(function(a, sig) {
+let call_multiple_callback_functions = fp(function (a, sig) {
 	// will look at the signature and choose what to do.
 	//if (sig == )
 	// need to be checking if the item is an array - nice to have a different way of doing that with fp.
@@ -1145,12 +1155,12 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 	//  like the async library, but also accepting parameters.
 
 	// arr_functions_params_pairs, callback
-	var arr_functions_params_pairs, callback, return_params = false;
-	var delay;
+	let arr_functions_params_pairs, callback, return_params = false;
+	let delay;
 
 	//console.log('sig', sig);
 
-	var num_parallel = 1;
+	let num_parallel = 1;
 	//console.log('* a.l', a.l);
 
 	if (a.l == 1) {
@@ -1232,31 +1242,31 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 
 	// also want the context.
 
-	var res = [];
+	let res = [];
 
-	var l = arr_functions_params_pairs.length;
-	var c = 0;
-	var that = this;
+	let l = arr_functions_params_pairs.length;
+	let c = 0;
+	let that = this;
 
-	var count_unfinished = l;
+	let count_unfinished = l;
 
 	// the number of processes going
 
 	// the maximum number of processes allowed.
 	//  num_parallel
 
-	var num_currently_executing = 0;
+	let num_currently_executing = 0;
 
-	var process = function(delay) {
+	let process = function (delay) {
 		num_currently_executing++;
-		var main = function() {
+		let main = function () {
 
 			// they may not be pairs, they could be a triple with a callback.
 			//console.log('num_currently_executing ' + num_currently_executing);
 			//console.log('num_parallel', num_parallel);
 			//console.log('c ' + c);
 
-			var pair = arr_functions_params_pairs[c];
+			let pair = arr_functions_params_pairs[c];
 			// maybe there won't be a pair.
 			//  should try to prevent this situation.
 
@@ -1269,17 +1279,17 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 			// object (context / caller), function, params
 			// object (context / caller), function, params, fn_callback
 
-			var context;
-			var fn, params, fn_callback;
+			let context;
+			let fn, params, fn_callback;
 			// function, array
 			// context
 			//console.log('pair.length ' + pair.length);
-			var pair_sig = get_item_sig(pair);
+			let pair_sig = get_item_sig(pair);
 			//console.log('pair_sig ' + pair_sig);
 			//console.log(jsgui.atof(pair));
 			//console.log('pair.length ' + pair.length);
 
-			var t_pair = tof(pair);
+			let t_pair = tof(pair);
 			//console.log('t_pair', t_pair);
 
 			if (t_pair == 'function') {
@@ -1365,19 +1375,19 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 
 
 
-			var i = c;
+			let i = c;
 			// not sure it keeps this same value of i.
 			//  can try some tests on this.
 
 			c++;
 			//throw 'stop';
 
-			var cb = function(err, res2) {
+			let cb = function (err, res2) {
 				num_currently_executing--;
 				count_unfinished--;
 				//console.log('cb num_currently_executing ' + num_currently_executing + ', c ' + c);
 				if (err) {
-					var stack = new Error().stack;
+					let stack = new Error().stack;
 					//console.log(stack);
 					//throw err;
 
@@ -1435,12 +1445,12 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 			//   This is now messing up typed arrays.
 			//   Seems unintuitive too. Wrong assumption to clone params. Could make it an option.
 
-			//var arr_to_call = clone(params) || [];
+			//let arr_to_call = clone(params) || [];
 
-			var arr_to_call = params || [];
+			let arr_to_call = params || [];
 
 
-			//var arr_to_call = (params) || [];
+			//let arr_to_call = (params) || [];
 			//console.log('params', params);
 			//console.log('arr_to_call', arr_to_call);
 			//console.log('params ' + params);
@@ -1471,7 +1481,7 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 	}
 	//console.log('** arr_functions_params_pairs.length ' + arr_functions_params_pairs.length);
 	if (arr_functions_params_pairs.length > 0) {
-		while ((c < l)  && (num_currently_executing < num_parallel)) {
+		while ((c < l) && (num_currently_executing < num_parallel)) {
 			if (delay) {
 				//console.log('sto');
 				//setTimeout(process, delay * c);
@@ -1487,12 +1497,12 @@ var call_multiple_callback_functions = fp(function(a, sig) {
 	}
 });
 
-var multi = call_multiple_callback_functions;
-var call_multi = call_multiple_callback_functions;
+let multi = call_multiple_callback_functions;
+let call_multi = call_multiple_callback_functions;
 
-var Fns = function(arr) {
-	var fns = arr || [];
-	fns.go = function(parallel, delay, callback) {
+let Fns = function (arr) {
+	let fns = arr || [];
+	fns.go = function (parallel, delay, callback) {
 		// Should have better param checking here.
 
 		//if (!callback) {
@@ -1501,8 +1511,8 @@ var Fns = function(arr) {
 		//    call_multi(parallel, fns, callback);
 		//}
 
-		var a = arguments;
-		var al = a.length;
+		let a = arguments;
+		let al = a.length;
 
 		// No, we may give the number in parallel, alongside a callback.
 
@@ -1529,7 +1539,7 @@ var Fns = function(arr) {
 	return fns;
 }
 
-var native_constructor_tof = function(value) {
+let native_constructor_tof = function (value) {
 	if (value === String) {
 		return 'String';
 	}
@@ -1547,14 +1557,14 @@ var native_constructor_tof = function(value) {
 	}
 }
 
-//var storage_closure
+//let storage_closure
 
 // jsgui.get and jsgui.set
 //  so JSGUI itself would have some properties within a closure.
 //  Not sure if that would allow some kind of global variables (again).
 
 
-var sig_match = function(sig1, sig2) {
+let sig_match = function (sig1, sig2) {
 	// Does sig2 match sig1
 
 	// We go through sig1, checking item by item.
@@ -1564,24 +1574,26 @@ var sig_match = function(sig1, sig2) {
 	// I think just check flat sigs?
 	//  Or we could do this recursively anyway.
 
-	var sig1_inner = sig1.substr(1, sig1.length - 2);
+	let sig1_inner = sig1.substr(1, sig1.length - 2);
 	//console.log('sig1_inner', sig1_inner);
 
-	var sig2_inner = sig2.substr(1, sig2.length - 2);
+	let sig2_inner = sig2.substr(1, sig2.length - 2);
 	//console.log('sig2_inner', sig2_inner);
 
 	if (sig1_inner.indexOf('[') > -1 || sig1_inner.indexOf(']') > -1 || sig2_inner.indexOf('[') > -1 || sig2_inner.indexOf(']') > -1) {
 		throw 'sig_match only supports flat signatures.';
 	}
 
-	var sig1_parts = sig1_inner.split(',');
-	//var sig2_parts = sig1_inner.split(',');
-	var sig2_parts = sig2_inner.split(',');
+	let sig1_parts = sig1_inner.split(',');
+	//let sig2_parts = sig1_inner.split(',');
+	let sig2_parts = sig2_inner.split(',');
 
-	var res = true;
+	let res = true;
 
 	if (sig1_parts.length == sig2_parts.length) {
-		var c = 0, l = sig1_parts.length, i1, i2;
+		let c = 0,
+			l = sig1_parts.length,
+			i1, i2;
 		while (res && c < l) {
 			i1 = sig1_parts[c];
 			i2 = sig2_parts[c];
@@ -1603,7 +1615,7 @@ var sig_match = function(sig1, sig2) {
 	//throw 'stop';
 }
 
-var remove_sig_from_arr_shell = function(sig) {
+let remove_sig_from_arr_shell = function (sig) {
 	// first and last characters?
 	// use regex then regex to extract the middle?
 
@@ -1615,11 +1627,11 @@ var remove_sig_from_arr_shell = function(sig) {
 };
 
 
-var str_arr_mapify = function(fn) {
-	var res = fp(function(a, sig) {
+let str_arr_mapify = function (fn) {
+	let res = fp(function (a, sig) {
 		if (a.l == 1) {
 			if (sig == '[s]') {
-				var s_pn = a[0].split(' ');
+				let s_pn = a[0].split(' ');
 				// console.log('s_pn ' + s_pn.length);
 
 				if (s_pn.length > 1) {
@@ -1630,9 +1642,10 @@ var str_arr_mapify = function(fn) {
 			}
 
 			if (tof(a[0]) == 'array') {
-				var res2 = {}, that = this;
+				let res2 = {},
+					that = this;
 
-				each(a[0], function(v, i) {
+				each(a[0], function (v, i) {
 					res2[v] = fn.call(that, v);
 				});
 				return res2;
@@ -1642,38 +1655,39 @@ var str_arr_mapify = function(fn) {
 	return res;
 };
 
-var to_arr_strip_keys = (obj) => {
-    var res = [];
-    each(obj, (v) => {
-        res.push(v);
-    });
-    return res;
+let to_arr_strip_keys = (obj) => {
+	let res = [];
+	each(obj, (v) => {
+		res.push(v);
+	});
+	return res;
 }
 
 // Array of objects to keys values table
 
 
 
-var arr_objs_to_arr_keys_values_table = (arr_objs) => {
-    var keys = Object.keys(arr_objs[0]);
+let arr_objs_to_arr_keys_values_table = (arr_objs) => {
+	let keys = Object.keys(arr_objs[0]);
 
-    var arr_items = [], arr_values;
-    each(arr_objs, (item) => {
-        arr_items.push(to_arr_strip_keys(item));
-    });
+	let arr_items = [],
+		arr_values;
+	each(arr_objs, (item) => {
+		arr_items.push(to_arr_strip_keys(item));
+	});
 
-    return [keys, arr_items];
+	return [keys, arr_items];
 }
 
 // will put functions into the jsgui object.
 
 // with the functions listed like this it will be easier to document them.
 
-var set_arr_tree_value = (arr_tree, arr_path, value) => {
+let set_arr_tree_value = (arr_tree, arr_path, value) => {
 	// navingate to the path, need to change the last one by reference.
 	// move through the tree, using parts of the path
-	var item_current = arr_tree;
-	var last_item_current, last_path_item;
+	let item_current = arr_tree;
+	let last_item_current, last_path_item;
 	each(arr_path, (path_item) => {
 		last_item_current = item_current;
 		//console.log('path_item', path_item);
@@ -1686,12 +1700,12 @@ var set_arr_tree_value = (arr_tree, arr_path, value) => {
 	//throw 'stop';
 }
 
-var get_arr_tree_value = (arr_tree, arr_path) => {
+let get_arr_tree_value = (arr_tree, arr_path) => {
 	// navingate to the path, need to change the last one by reference.
 
 	// move through the tree, using parts of the path
-	var item_current = arr_tree;
-	//var last_item_current, last_path_item;
+	let item_current = arr_tree;
+	//let last_item_current, last_path_item;
 	each(arr_path, (path_item) => {
 		//last_item_current = item_current;
 		//console.log('path_item', path_item);
@@ -1708,26 +1722,26 @@ var get_arr_tree_value = (arr_tree, arr_path) => {
 
 // Think we should clone the paths and pass them forward.
 
-var deep_arr_iterate = (arr, path = [], callback) => {
+let deep_arr_iterate = (arr, path = [], callback) => {
 	if (arguments.length === 2) {
 		callback = path;
 		path = [];
 	}
 
 	each(arr, (item, i) => {
-		
+
 		//path = clone(path);
 		//path.push(i);
 		//console.log('path', path);
 		//path.push(i);
 
-		var c_path = clone(path);
+		let c_path = clone(path);
 		c_path.push(i);
 		//console.log('c_path', c_path);
 
-		var t = tof(item);
+		let t = tof(item);
 		//console.log('t', t);
-		
+
 		if (t === 'array') {
 			deep_arr_iterate(item, c_path, callback);
 		} //else if (t === 'number') {
@@ -1739,382 +1753,302 @@ var deep_arr_iterate = (arr, path = [], callback) => {
 	})
 }
 
+// Can it easily keep the same context?
+let prom = (fn) => {
+
+
+
+	let fn_res = function () {
+		const a = arguments;
+		const t_a_last = typeof a[a.length - 1];
+
+		//console.log(this);
+		//throw 'stop';
+
+		if (t_a_last === 'function') {
+			fn.apply(this, a);
+
+		} else {
+
+			//console.log('a.length', a.length);
+
+			return new Promise((resolve, reject) => {
+
+				[].push.call(a, (err, res) => {
+					if (err) {
+						reject(err);
+					} else {
+						resolve(res);
+					}
+				});
+
+				fn.apply(this, a);
+			})
+
+		}
+	}
+
+	return fn_res;
+
+}
+
 
 class Evented_Class {
-    
-        // Needs to initialize the bound events to start with.
-    
-    'constructor'() {
-        this._bound_events = {};
-    }
-
-    'raise_event'() {
-        var a = Array.prototype.slice.call(arguments), sig = get_item_sig(a, 1); a.l = a.length;
-        
-        var that = this;
-        var target = this;
-        var c, l;
-
-        //console.log('raise_event sig', sig);
-
-        if (sig == '[s]') {
-            // just raise an event, given with no parameters,
-            //  maybe like 'started'.
-
-            var target = this;
-            var event_name = a[0];
-
-            //console.log('Data_Object raise_event ' + event_name);
-
-            var bgh = this._bound_general_handler;
-
-            var be = this._bound_events;
-            var res = [];
-            if (bgh) {
-                for (c = 0, l = bgh.length; c < l; c++) {
-                    res.push(bgh[c].call(target, event_name));
-                }
-            }
-
-            if (be) {
-                // This is attaching events to the same object.
-                //  Not sure why, but this needs to be fixed.
-
-
-                var bei = be[event_name];
-
-                //console.log('bei', bei);
-                //console.log('tof bei', tof(bei));
-                if (tof(bei) == 'array') {
-                    //console.log('1) raise_event bei.length ' + bei.length);
-                    //var res = [];
-
-                    for (c = 0, l = bei.length; c < l; c++) {
-                        res.push(bei[c].call(target));
-                    }
-
-                    //console.log('Evented_Class raise_event [s] res', res);
-                    return res;
-                }
-            }
-        }
-
-        // And s,a would be a value given as an array
-        //  We don't have more properties, just a value.
-
-        // Seems to call more functions.
-        //  Not allowing an array to be the event object.
-
-        if (sig == '[s,a]') {
-            var be = this._bound_events;
-
-            // And its general bound events as well.
-            var bgh = this._bound_general_handler;
-            var event_name = a[0];
-
-            // Hard to include an event target in this situation.
-            //a[1].target = target;
-
-            var res = [];
-            if (bgh) {
-
-                //console.log('bgh.length', bgh.length);
-
-                for (c = 0, l = bgh.length; c < l; c++) {
-                    res.push(bgh[c].call(target, event_name, a[1]));
-                }
-            }
-
-            //console.log('this._bound_events', this._bound_events);
-            if (be) {
-                var bei = be[event_name];
-
-                //console.log('bei.length', bei.length);
-                //console.log('tof bei', tof(bei));
-                if (tof(bei) === 'array') {
-                    //console.log('1) raise_event bei.length ' + bei.length);
-
-
-                    for (c = 0, l = bei.length; c < l; c++) {
-                        res.push(bei[c].call(target, a[1]));
-                    }
-
-                    //each(bei, function(i, v) {
-                    //    res.push(v.call(target, a[1]));
-                    //});
-
-                    //console.log('Evented_Class raise_event [s] res', res);
-                    //return res;
-                }
-            }
-        }
-
-
-        if (sig == '[s,o]') {
-            var be = this._bound_events;
-
-            //console.log('be', be);
-
-            // And its general bound events as well.
-            var bgh = this._bound_general_handler;
-            var event_name = a[0];
-
-            if (!a[1].target) a[1].target = target;
-
-            var res = [];
-            if (bgh) {
-
-                //console.log('bgh.length', bgh.length);
-
-                for (c = 0, l = bgh.length; c < l; c++) {
-                    res.push(bgh[c].call(target, event_name, a[1]));
-                }
-            }
-
-
-            //console.log('this._bound_events', this._bound_events);
-            if (be) {
-                var bei = be[event_name];
-
-                //console.log('bei.length', bei.length);
-                //console.log('tof bei', tof(bei));
-                if (tof(bei) === 'array') {
-                    //console.log('1) raise_event bei.length ' + bei.length);
-
-
-                    for (c = 0, l = bei.length; c < l; c++) {
-                        res.push(bei[c].call(target, a[1]));
-                    }
-                }
-            }
-        } else {
-            if (a.l > 2) {
-
-
-                // Want to pass the target value onwards so that the event handlers can read it.
-
-                var event_name = a[0];
-
-                //console.log('event_name ' + event_name);
-
-                var additional_args = [];
-                var bgh_args = [event_name];
-
-                for (c = 1, l = a.l; c < l; c++) {
-                    additional_args.push(a[c]);
-                    bgh_args.push(a[c]);
-                }
-
-                var be = this._bound_events;
-                var bgh = this._bound_general_handler;
-
-                var res = [];
-
-                if (bgh) {
-                    for (c = 0, l = bgh.length; c < l; c++) {
-                        res.push(bgh[c].apply(target, bgh_args));
-                    }
-                }
-                //console.log('be ' + tof(be));
-                if (be) {
-                    // The controls that are activated on the clients need to have bound events.
-
-                    //console.log('event_name', event_name);
-                    var bei = be[event_name];
-                    //console.log('bei ', bei);
-                    if (tof(bei) == 'array') {
-                        //console.log('1) raise_event bei.length ' + bei.length);
-                        if (bei.length > 0) {
-                            // They are handlers that get called.
-
-                            for (c = 0, l = bei.length; c < l; c++) {
-                                if (bei[c]) res.push(bei[c].apply(target, additional_args));
-
-                            }
-
-                            return res;
-                        } else {
-                            return res;
-                        }
-
-
-                        //console.log('2) raised the bound events');
-                    }
-                    // Or if it's just a function?
-                }
-            }
-        }
-
-        return res;
-    }
-
-    'add_event_listener'() {
-        var a = Array.prototype.slice.call(arguments), sig = get_item_sig(a, 1); a.l = a.length;
-        // event listener for all events...
-        //  that could work with delegation, and then when the code finds the event it interprets it.
-        //console.log('');
-        //console.log('data_object add_event_listener sig ' + sig);
-
-        // Why is this getting called so many times, for the same object?
-
-
-
-        //console.log('');
-        // Why is the bound events array getting so big?
-
-        if (sig == '[f]') {
-            //var stack = new Error().stack;
-            //console.log(stack);
-            //throw 'stop';
-
-
-
-            this._bound_general_handler = this._bound_general_handler || [];
-            if (is_array(this._bound_general_handler)) {
-                //if (tof(this._bound_general_handler) == 'array') {
-                this._bound_general_handler.push(a[0]);
-            };
-        }
-        // Why does a change event listener get bound to the wrong control, or bound multiple times?
-        //  Changes getting pushed up through the tree?
-
-
-        if (sig == '[s,f]') {
-            // bound to a particular event name
-
-            // want the general triggering functions to be done too.
-            //  with a different function
-            var event_name = a[0], fn_listener = a[1];
-            //console.log('event_name ' + event_name);
-            this._bound_events = this._bound_events || {};
-
-            // removing from a bound general handler being slow?
-            //  perhaps... but we won't have so many of these anyway.
-            //  could get id for object and have it within collection.
-            //   But not sure about using collections for events... collections use events...?
-
-            // Different controls binding to the same array of events?
-
-            if (!this._bound_events[event_name]) this._bound_events[event_name] = [];
-
-            var bei = this._bound_events[event_name];
-            //console.log('this._id() ' + this._id());
-            if (is_array(bei)) {
-                //if (tof(bei) == 'array') {
-                //console.log('this', this);
-                //console.log('add_event_listener bei.length ' + bei.length);
-                bei.push(fn_listener);
-            };
-        }
-
-    }
-
-    // A way of proxying functions below?
-    //  Or simply use function alias?
-    'on'() {
-        // However, need to make use of some document events.
-        //  With some controls, we need to pass through
-
-        return this.add_event_listener.apply(this, arguments);
-
-
-    }
-
-    'remove_event_listener'(event_name, fn_listener) {
-
-
-        // TODO
-        // And remove something that's bound to the general handler...?
-
-
-
-        // needs to go through the whole array?
-        // think so....
-
-        //console.log('remove_event_listener');
-        //console.log('this._bound_events', this._bound_events);
-        if (this._bound_events) {
-            //console.log('event_name', event_name);
-            var bei = this._bound_events[event_name] || [];
-
-            //var tbei = tof(bei);
-            //console.log('tbei', tbei);
-
-            if (is_array(bei)) {
-                // bei.push(fn_listener);
-
-                var c = 0, l = bei.length, found = false;
-
-                //console.log('l', l);
-
-                while (!found && c < l) {
-                    if (bei[c] === fn_listener) {
-                        found = true;
-                    } else {
-                        c++;
-                    }
-                }
-                //console.log('found', found);
-                //console.log('c', c);
-                if (found) {
-                    bei.splice(c, 1);
-                }
-            };
-        }
-    }
-
-    'off'() {
-        // However, need to make use of some document events.
-        //  With some controls, we need to pass through
-
-        return this.remove_event_listener.apply(this, arguments);
-
-    }
-    'one'(event_name, fn_handler) {
-
-        var inner_handler = function(e) {
-
-            //var result = fn_handler.call(this, e);
-            fn_handler.call(this, e);
-            this.off(event_name, inner_handler);
-            //return result;
-        };
-
-        this.on(event_name, inner_handler);
-    }
+	'constructor' () {
+		this._bound_events = {};
+	}
+
+	'raise_event' () {
+		let a = Array.prototype.slice.call(arguments),
+			sig = get_item_sig(a, 1);
+		a.l = a.length;
+
+		let that = this;
+		let target = this;
+		let c, l;
+
+		if (sig == '[s]') {
+			let target = this;
+			let event_name = a[0];
+			let bgh = this._bound_general_handler;
+			let be = this._bound_events;
+			let res = [];
+			if (bgh) {
+				for (c = 0, l = bgh.length; c < l; c++) {
+					res.push(bgh[c].call(target, event_name));
+				}
+			}
+
+			if (be) {
+				let bei = be[event_name];
+				if (tof(bei) == 'array') {
+					for (c = 0, l = bei.length; c < l; c++) {
+						res.push(bei[c].call(target));
+					}
+					return res;
+				}
+			}
+		}
+
+		// And s,a would be a value given as an array
+		//  We don't have more properties, just a value.
+
+		// Seems to call more functions.
+		//  Not allowing an array to be the event object.
+
+		if (sig == '[s,a]') {
+			let be = this._bound_events;
+
+			// And its general bound events as well.
+			let bgh = this._bound_general_handler;
+			let event_name = a[0];
+			let res = [];
+			if (bgh) {
+				for (c = 0, l = bgh.length; c < l; c++) {
+					res.push(bgh[c].call(target, event_name, a[1]));
+				}
+			}
+			if (be) {
+				let bei = be[event_name];
+				if (tof(bei) === 'array') {
+					for (c = 0, l = bei.length; c < l; c++) {
+						res.push(bei[c].call(target, a[1]));
+					}
+				}
+			}
+		}
+
+
+		if (sig == '[s,o]') {
+			let be = this._bound_events;
+			let bgh = this._bound_general_handler;
+			let event_name = a[0];
+
+			if (!a[1].target) a[1].target = target;
+
+			let res = [];
+			if (bgh) {
+				for (c = 0, l = bgh.length; c < l; c++) {
+					res.push(bgh[c].call(target, event_name, a[1]));
+				}
+			}
+
+			if (be) {
+				let bei = be[event_name];
+				if (tof(bei) === 'array') {
+					for (c = 0, l = bei.length; c < l; c++) {
+						res.push(bei[c].call(target, a[1]));
+					}
+				}
+			}
+		} else {
+			if (a.l > 2) {
+				let event_name = a[0];
+				let additional_args = [];
+				let bgh_args = [event_name];
+
+				for (c = 1, l = a.l; c < l; c++) {
+					additional_args.push(a[c]);
+					bgh_args.push(a[c]);
+				}
+
+				let be = this._bound_events;
+				let bgh = this._bound_general_handler;
+
+				let res = [];
+
+				if (bgh) {
+					for (c = 0, l = bgh.length; c < l; c++) {
+						res.push(bgh[c].apply(target, bgh_args));
+					}
+				}
+				if (be) {
+					let bei = be[event_name];
+					if (tof(bei) == 'array') {
+						if (bei.length > 0) {
+							// They are handlers that get called.
+
+							for (c = 0, l = bei.length; c < l; c++) {
+								if (bei[c]) res.push(bei[c].apply(target, additional_args));
+
+							}
+							return res;
+						} else {
+							return res;
+						}
+					}
+					// Or if it's just a function?
+				}
+			}
+		}
+
+		return res;
+	}
+
+	'add_event_listener' () {
+		let a = Array.prototype.slice.call(arguments),
+			sig = get_item_sig(a, 1);
+		a.l = a.length;
+		if (sig == '[f]') {
+			this._bound_general_handler = this._bound_general_handler || [];
+			if (is_array(this._bound_general_handler)) {
+				//if (tof(this._bound_general_handler) == 'array') {
+				this._bound_general_handler.push(a[0]);
+			};
+		}
+
+		if (sig == '[s,f]') {
+			// bound to a particular event name
+
+			// want the general triggering functions to be done too.
+			//  with a different function
+			let event_name = a[0],
+				fn_listener = a[1];
+			//console.log('event_name ' + event_name);
+			this._bound_events = this._bound_events || {};
+			if (!this._bound_events[event_name]) this._bound_events[event_name] = [];
+
+			let bei = this._bound_events[event_name];
+			//console.log('this._id() ' + this._id());
+			if (is_array(bei)) {
+				//if (tof(bei) == 'array') {
+				//console.log('this', this);
+				//console.log('add_event_listener bei.length ' + bei.length);
+				bei.push(fn_listener);
+			};
+		}
+
+	}
+
+	// A way of proxying functions below?
+	//  Or simply use function alias?
+	/*
+	'on' () {
+		// However, need to make use of some document events.
+		//  With some controls, we need to pass through
+
+		return this.add_event_listener.apply(this, arguments);
+
+
+	}
+	*/
+
+	'remove_event_listener' (event_name, fn_listener) {
+		if (this._bound_events) {
+			let bei = this._bound_events[event_name] || [];
+			if (is_array(bei)) {
+				let c = 0,
+					l = bei.length,
+					found = false;
+				while (!found && c < l) {
+					if (bei[c] === fn_listener) {
+						found = true;
+					} else {
+						c++;
+					}
+				}
+				if (found) {
+					bei.splice(c, 1);
+				}
+			};
+		}
+	}
+
+	'off' () {
+		// However, need to make use of some document events.
+		//  With some controls, we need to pass through
+
+		return this.remove_event_listener.apply(this, arguments);
+
+	}
+	'one' (event_name, fn_handler) {
+
+		let inner_handler = function (e) {
+
+			//let result = fn_handler.call(this, e);
+			fn_handler.call(this, e);
+			this.off(event_name, inner_handler);
+			//return result;
+		};
+
+		this.on(event_name, inner_handler);
+	}
 };
 
 var p = Evented_Class.prototype;
 p.raise = p.raise_event;
 p.trigger = p.raise_event;
+p.subscribe = p.add_event_listener;
+p.on = p.add_event_listener;
 
 
-var lang_mini = {
-	'each' : each,
-	'is_array' : is_array,
-	'is_dom_node' : is_dom_node,
-	'is_ctrl' : is_ctrl,
-	'clone' : clone,
-	'get_truth_map_from_arr' : get_truth_map_from_arr,
+
+let lang_mini = {
+	'each': each,
+	'is_array': is_array,
+	'is_dom_node': is_dom_node,
+	'is_ctrl': is_ctrl,
+	'clone': clone,
+	'get_truth_map_from_arr': get_truth_map_from_arr,
 	'get_arr_from_truth_map': get_arr_from_truth_map,
 	'arr_trim_undefined': arr_trim_undefined,
-	'get_map_from_arr' : get_map_from_arr,
-	'arr_like_to_arr' : arr_like_to_arr,
-	'tof' : tof,
-	'atof' : atof,
-	'is_defined' : is_defined,
-	'stringify' : stringify,
-	'functional_polymorphism' : functional_polymorphism,
-	'fp' : fp,
-	'arrayify' : arrayify,
-	'mapify' : mapify,
+	'get_map_from_arr': get_map_from_arr,
+	'arr_like_to_arr': arr_like_to_arr,
+	'tof': tof,
+	'atof': atof,
+	'is_defined': is_defined,
+	'stringify': stringify,
+	'functional_polymorphism': functional_polymorphism,
+	'fp': fp,
+	'arrayify': arrayify,
+	'mapify': mapify,
 	'str_arr_mapify': str_arr_mapify,
-	'are_equal' : are_equal,
+	'are_equal': are_equal,
 	'get_a_sig': get_a_sig,
-	'get_item_sig' : get_item_sig,
+	'get_item_sig': get_item_sig,
 	'set_vals': set_vals,
 	'truth': truth,
-	'trim_sig_brackets' : trim_sig_brackets,
+	'trim_sig_brackets': trim_sig_brackets,
 	'll_set': ll_set,
 	'll_get': ll_get,
 	'iterate_ancestor_classes': iterate_ancestor_classes,
@@ -2129,14 +2063,14 @@ var lang_mini = {
 	'native_constructor_tof': native_constructor_tof,
 	'Fns': Fns,
 	'sig_match': sig_match,
-    'remove_sig_from_arr_shell': remove_sig_from_arr_shell,
-    'to_arr_strip_keys': to_arr_strip_keys,
+	'remove_sig_from_arr_shell': remove_sig_from_arr_shell,
+	'to_arr_strip_keys': to_arr_strip_keys,
 	'arr_objs_to_arr_keys_values_table': arr_objs_to_arr_keys_values_table,
 	'set_arr_tree_value': set_arr_tree_value,
 	'get_arr_tree_value': get_arr_tree_value,
-    'deep_arr_iterate': deep_arr_iterate,
-    'Evented_Class': Evented_Class
+	'deep_arr_iterate': deep_arr_iterate,
+	'prom': prom,
+	'Evented_Class': Evented_Class
 };
 
 module.exports = lang_mini;
-

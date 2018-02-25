@@ -166,8 +166,8 @@ let tof = (obj, t1) => {
 						//console.log('obj.length ' + obj.length);
 						if (obj instanceof Buffer) res = 'buffer';
 
-						if (obj instanceof Stream.Readable) res = 'readable_stream';
-						if (obj instanceof Stream.Writable) res = 'writable_stream';
+						//if (obj instanceof Stream.Readable) res = 'readable_stream';
+						//if (obj instanceof Stream.Writable) res = 'writable_stream';
 					}
 
 
@@ -1805,14 +1805,14 @@ class Evented_Class {
 
 		let that = this;
 		let target = this;
-		let c, l;
+		let c, l, res;
 
 		if (sig == '[s]') {
 			let target = this;
 			let event_name = a[0];
 			let bgh = this._bound_general_handler;
 			let be = this._bound_events;
-			let res = [];
+			res = [];
 			if (bgh) {
 				for (c = 0, l = bgh.length; c < l; c++) {
 					res.push(bgh[c].call(target, event_name));
@@ -1842,12 +1842,39 @@ class Evented_Class {
 			// And its general bound events as well.
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];
-			let res = [];
+			res = [];
 			if (bgh) {
 				for (c = 0, l = bgh.length; c < l; c++) {
 					res.push(bgh[c].call(target, event_name, a[1]));
 				}
 			}
+			if (be) {
+				let bei = be[event_name];
+				if (tof(bei) === 'array') {
+					for (c = 0, l = bei.length; c < l; c++) {
+						res.push(bei[c].call(target, a[1]));
+					}
+				}
+			}
+		}
+
+
+
+
+		if (sig == '[s,B]') {
+			let be = this._bound_events;
+			let bgh = this._bound_general_handler;
+			let event_name = a[0];
+
+			if (!a[1].target) a[1].target = target;
+
+			res = [];
+			if (bgh) {
+				for (c = 0, l = bgh.length; c < l; c++) {
+					res.push(bgh[c].call(target, event_name, a[1]));
+				}
+			}
+
 			if (be) {
 				let bei = be[event_name];
 				if (tof(bei) === 'array') {
@@ -1866,7 +1893,7 @@ class Evented_Class {
 
 			if (!a[1].target) a[1].target = target;
 
-			let res = [];
+			res = [];
 			if (bgh) {
 				for (c = 0, l = bgh.length; c < l; c++) {
 					res.push(bgh[c].call(target, event_name, a[1]));
@@ -1895,7 +1922,7 @@ class Evented_Class {
 				let be = this._bound_events;
 				let bgh = this._bound_general_handler;
 
-				let res = [];
+				res = [];
 
 				if (bgh) {
 					for (c = 0, l = bgh.length; c < l; c++) {
@@ -1919,6 +1946,11 @@ class Evented_Class {
 					}
 					// Or if it's just a function?
 				}
+			} else {
+				// s,?
+
+
+
 			}
 		}
 
@@ -1968,7 +2000,6 @@ class Evented_Class {
 		//  With some controls, we need to pass through
 
 		return this.add_event_listener.apply(this, arguments);
-
 
 	}
 	*/

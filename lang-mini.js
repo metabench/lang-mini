@@ -1885,6 +1885,54 @@ class Evented_Class {
 			}
 		}
 
+		if (sig == '[s,b]') {
+			let be = this._bound_events;
+			let bgh = this._bound_general_handler;
+			let event_name = a[0];
+
+			//if (!a[1].target) a[1].target = target;
+
+			res = [];
+			if (bgh) {
+				for (c = 0, l = bgh.length; c < l; c++) {
+					res.push(bgh[c].call(target, event_name, a[1]));
+				}
+			}
+
+			if (be) {
+				let bei = be[event_name];
+				if (tof(bei) === 'array') {
+					for (c = 0, l = bei.length; c < l; c++) {
+						res.push(bei[c].call(target, a[1]));
+					}
+				}
+			}
+		}
+
+		if (sig == '[s,n]') {
+			let be = this._bound_events;
+			let bgh = this._bound_general_handler;
+			let event_name = a[0];
+
+			//if (!a[1].target) a[1].target = target;
+
+			res = [];
+			if (bgh) {
+				for (c = 0, l = bgh.length; c < l; c++) {
+					res.push(bgh[c].call(target, event_name, a[1]));
+				}
+			}
+
+			if (be) {
+				let bei = be[event_name];
+				if (tof(bei) === 'array') {
+					for (c = 0, l = bei.length; c < l; c++) {
+						res.push(bei[c].call(target, a[1]));
+					}
+				}
+			}
+		}
+
 
 		if (sig == '[s,o]') {
 			let be = this._bound_events;
@@ -1948,8 +1996,6 @@ class Evented_Class {
 				}
 			} else {
 				// s,?
-
-
 
 			}
 		}
@@ -2075,6 +2121,7 @@ let lang_mini = {
 	'mapify': mapify,
 	'str_arr_mapify': str_arr_mapify,
 	'are_equal': are_equal,
+	'deep_equal': are_equal,
 	'get_a_sig': get_a_sig,
 	'get_item_sig': get_item_sig,
 	'set_vals': set_vals,

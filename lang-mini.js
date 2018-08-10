@@ -99,8 +99,6 @@ let arr_like_to_arr = function (arr_like) {
 	return res;
 };
 
-
-
 // Could do better... could check actual instanceof
 //  But a more advanced jsgui level could do this check, and have its own tof function.
 //  That would be jsgui-lang-html has the check for is control.
@@ -201,10 +199,10 @@ let atof = (arr) => {
 };
 
 let is_defined = (value) => {
-		// tof or typeof
+	// tof or typeof
 
-		return typeof (value) != 'undefined';
-	},
+	return typeof (value) != 'undefined';
+},
 	isdef = is_defined;
 
 let is_data_object = function (obj) {
@@ -424,7 +422,7 @@ let get_item_sig = (i, arr_depth) => {
 
 
 					} else {
-
+						//console.log('t', t);
 						res = '?';
 
 
@@ -810,6 +808,8 @@ let mapify = (target) => {
 	// been given a map / object
 
 };
+
+// Seems like fp works OK with arrow functions.
 
 let clone = fp((a, sig) => {
 	let obj = a[0];
@@ -1794,11 +1794,11 @@ let prom = (fn) => {
 
 
 class Evented_Class {
-	'constructor' () {
+	'constructor'() {
 		this._bound_events = {};
 	}
 
-	'raise_event' () {
+	'raise_event'() {
 		let a = Array.prototype.slice.call(arguments),
 			sig = get_item_sig(a, 1);
 		a.l = a.length;
@@ -1939,7 +1939,15 @@ class Evented_Class {
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];
 
-			if (!a[1].target) a[1].target = target;
+			// Could have it automatially add targets.
+			//  For the moment, want to keep this simpler.
+
+
+			// optional assign_target variable.
+			//  don't want to assign a target by default.
+			//  it's useful in tracking DOM events though, but we may well be able to find it through 'this' in the next call.
+
+			//if (!a[1].target) a[1].target = target;
 
 			res = [];
 			if (bgh) {
@@ -1966,12 +1974,9 @@ class Evented_Class {
 					additional_args.push(a[c]);
 					bgh_args.push(a[c]);
 				}
-
 				let be = this._bound_events;
 				let bgh = this._bound_general_handler;
-
 				res = [];
-
 				if (bgh) {
 					for (c = 0, l = bgh.length; c < l; c++) {
 						res.push(bgh[c].apply(target, bgh_args));
@@ -1982,7 +1987,6 @@ class Evented_Class {
 					if (tof(bei) == 'array') {
 						if (bei.length > 0) {
 							// They are handlers that get called.
-
 							for (c = 0, l = bei.length; c < l; c++) {
 								if (bei[c]) res.push(bei[c].apply(target, additional_args));
 
@@ -1996,14 +2000,12 @@ class Evented_Class {
 				}
 			} else {
 				// s,?
-
 			}
 		}
-
 		return res;
 	}
 
-	'add_event_listener' () {
+	'add_event_listener'() {
 		let a = Array.prototype.slice.call(arguments),
 			sig = get_item_sig(a, 1);
 		a.l = a.length;
@@ -2035,7 +2037,7 @@ class Evented_Class {
 				bei.push(fn_listener);
 			};
 		}
-
+		return this;
 	}
 
 	// A way of proxying functions below?
@@ -2050,7 +2052,7 @@ class Evented_Class {
 	}
 	*/
 
-	'remove_event_listener' (event_name, fn_listener) {
+	'remove_event_listener'(event_name, fn_listener) {
 		if (this._bound_events) {
 			let bei = this._bound_events[event_name] || [];
 			if (is_array(bei)) {
@@ -2069,16 +2071,16 @@ class Evented_Class {
 				}
 			};
 		}
+		return this;
 	}
-
-	'off' () {
+	'off'() {
 		// However, need to make use of some document events.
 		//  With some controls, we need to pass through
 
 		return this.remove_event_listener.apply(this, arguments);
 
 	}
-	'one' (event_name, fn_handler) {
+	'one'(event_name, fn_handler) {
 
 		let inner_handler = function (e) {
 
@@ -2098,8 +2100,6 @@ p.trigger = p.raise_event;
 p.subscribe = p.add_event_listener;
 p.on = p.add_event_listener;
 
-
-
 let lang_mini = {
 	'each': each,
 	'is_array': is_array,
@@ -2114,6 +2114,7 @@ let lang_mini = {
 	'tof': tof,
 	'atof': atof,
 	'is_defined': is_defined,
+	'def': is_defined,
 	'stringify': stringify,
 	'functional_polymorphism': functional_polymorphism,
 	'fp': fp,

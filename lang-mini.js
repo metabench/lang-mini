@@ -2,7 +2,7 @@ let are_equal = require('deep-equal');
 
 if (typeof window === 'undefined') {
 	//exports.foo = {};
-	let Stream = require('stream');
+	//let Stream = require('stream');
 } else {
 	//window.foo = {};
 }
@@ -162,7 +162,11 @@ let tof = (obj, t1) => {
 					//console.log('twin ' + typeof window);
 					if (typeof window === 'undefined') {
 						//console.log('obj.length ' + obj.length);
-						if (obj instanceof Buffer) res = 'buffer';
+						//if (obj instanceof Buffer) res = 'buffer';
+						if (obj && obj.readInt8) res = 'buffer';
+
+
+						//if (obj && obj.prototype && obj.prototype.from && obj.prototype.alloc && obj.prototype.allocUnsafe) res = 'buffer';
 
 						//if (obj instanceof Stream.Readable) res = 'readable_stream';
 						//if (obj instanceof Stream.Writable) res = 'writable_stream';
@@ -619,7 +623,7 @@ let arrayify = fp(function (a, sig) {
 					//console.log('delay', delay);
 					//throw 'stop';
 
-					call_multiple_callback_functions(fns, num_parallel, delay, function (err, res) {
+					call_multiple_callback_functions(fns, num_parallel, delay, (err, res) => {
 						if (err) {
 							console.trace();
 							throw err;
@@ -826,7 +830,7 @@ let clone = fp((a, sig) => {
 			let res = [];
 
 
-			each(obj, function (v) {
+			each(obj, v => {
 				//console.log('i ' + i);
 				res.push(clone(v));
 			});
@@ -957,7 +961,7 @@ let set_vals = function (obj, map) {
 };
 
 
-let ll_set = function (obj, prop_name, prop_value) {
+let ll_set = (obj, prop_name, prop_value) => {
 	// not setting sub-properties specifically. sub-properties are
 	// properties of a kind
 	// however will not use ll_set inappropriately eg border.width works
@@ -993,7 +997,7 @@ let ll_set = function (obj, prop_name, prop_value) {
 };
 
 
-let ll_get = function (a0, a1) {
+let ll_get = (a0, a1) => {
 
 	if (a0 && a1) {
 		let i = a0._ || a0;
@@ -1061,7 +1065,7 @@ let truth = function (value) {
 	return value === true;
 };
 
-let iterate_ancestor_classes = function (obj, callback) {
+let iterate_ancestor_classes = (obj, callback) => {
 
 	/*
 	 if (obj.constructor &! obj._superclass) {
@@ -1077,7 +1081,7 @@ let iterate_ancestor_classes = function (obj, callback) {
 
 	let ctu = true;
 
-	let stop = function () {
+	let stop = () => {
 		ctu = false;
 	}
 
@@ -1086,8 +1090,6 @@ let iterate_ancestor_classes = function (obj, callback) {
 		iterate_ancestor_classes(obj._superclass, callback);
 	}
 }
-
-
 
 let is_arr_of_t = function (obj, type_name) {
 	let t = tof(obj),
@@ -1246,8 +1248,7 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 
 	let l = arr_functions_params_pairs.length;
 	let c = 0;
-	let that = this;
-
+	//let that = this;
 	let count_unfinished = l;
 
 	// the number of processes going
@@ -1257,9 +1258,9 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 
 	let num_currently_executing = 0;
 
-	let process = function (delay) {
+	let process = delay => {
 		num_currently_executing++;
-		let main = function () {
+		let main = () => {
 
 			// they may not be pairs, they could be a triple with a callback.
 			//console.log('num_currently_executing ' + num_currently_executing);
@@ -1269,11 +1270,6 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 			let pair = arr_functions_params_pairs[c];
 			// maybe there won't be a pair.
 			//  should try to prevent this situation.
-
-
-
-
-
 			//console.log('pair', pair);
 
 			// object (context / caller), function, params
@@ -1329,10 +1325,7 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 						//console.log('tof(pair[0])', tof(pair[0]));
 						//console.log('tof(pair[1])', tof(pair[1]));
 						//console.log('tof(pair[2])', tof(pair[2]));
-
-
 						// [context, fn, params]
-
 						if (tof(pair[0]) === 'function' && tof(pair[1]) === 'array' && tof(pair[2]) === 'function') {
 							fn = pair[0];
 							params = pair[1];
@@ -1361,20 +1354,12 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 					}
 				} else {
 					//console.log('missing pair');
-
 				}
-
 				// For some reason the pair can be undefined.
-
 				// We don't have a pair of them.
 				//  Have we called with the wrong data?
 				//   Do a callback, result is false.
-
-
 			}
-
-
-
 			let i = c;
 			// not sure it keeps this same value of i.
 			//  can try some tests on this.
@@ -1382,7 +1367,7 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 			c++;
 			//throw 'stop';
 
-			let cb = function (err, res2) {
+			let cb = (err, res2) => {
 				num_currently_executing--;
 				count_unfinished--;
 				//console.log('cb num_currently_executing ' + num_currently_executing + ', c ' + c);
@@ -1427,8 +1412,6 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 						if (num_currently_executing < num_parallel) {
 							process(delay);
 						}
-
-
 					} else {
 						//console.log('count_unfinished', count_unfinished);
 						if (count_unfinished <= 0) {
@@ -1463,7 +1446,7 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 				if (context) {
 					fn.apply(context, arr_to_call);
 				} else {
-					fn.apply(that, arr_to_call);
+					fn.apply(this, arr_to_call);
 				}
 			} else {
 				//cb(null, undefined);
@@ -1795,7 +1778,9 @@ let prom = (fn) => {
 
 class Evented_Class {
 	'constructor'() {
-		this._bound_events = {};
+		Object.defineProperty(this, '_bound_events', {
+            value: {}
+        });
 	}
 
 	'raise_event'() {
@@ -1933,7 +1918,6 @@ class Evented_Class {
 			}
 		}
 
-
 		if (sig == '[s,o]') {
 			let be = this._bound_events;
 			let bgh = this._bound_general_handler;
@@ -2025,7 +2009,7 @@ class Evented_Class {
 			let event_name = a[0],
 				fn_listener = a[1];
 			//console.log('event_name ' + event_name);
-			this._bound_events = this._bound_events || {};
+			//this._bound_events = this._bound_events || {};
 			if (!this._bound_events[event_name]) this._bound_events[event_name] = [];
 
 			let bei = this._bound_events[event_name];

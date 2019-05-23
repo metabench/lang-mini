@@ -113,6 +113,8 @@ let is_ctrl = function (obj) {
 // Also a bit of node.js specific code.
 //  May make node version of jsgui-lang-essentials, jsgui-node-lang-essentials.
 
+//let node_err = new Error();
+
 // may change to the jq_type code.
 let tof = (obj, t1) => {
 	let res = t1 || typeof obj;
@@ -128,6 +130,8 @@ let tof = (obj, t1) => {
 			if (obj === null) {
 				return 'null';
 			}
+
+
 
 			//console.log('typeof obj ' + typeof obj);
 			//console.log('obj === null ' + (obj === null));
@@ -156,7 +160,9 @@ let tof = (obj, t1) => {
 					return 'array';
 				} else {
 
-					if (obj instanceof RegExp) res = 'regex';
+					if (obj instanceof Error) {
+						res = 'error';
+					} else if (obj instanceof RegExp) res = 'regex';
 
 					// For running inside Node.
 					//console.log('twin ' + typeof window);
@@ -203,10 +209,10 @@ let atof = (arr) => {
 };
 
 let is_defined = (value) => {
-	// tof or typeof
+		// tof or typeof
 
-	return typeof (value) != 'undefined';
-},
+		return typeof (value) != 'undefined';
+	},
 	isdef = is_defined;
 
 let is_data_object = function (obj) {
@@ -1764,23 +1770,19 @@ let prom = (fn) => {
 						resolve(res);
 					}
 				});
-
 				fn.apply(this, a);
 			})
-
 		}
 	}
-
 	return fn_res;
-
 }
 
 
 class Evented_Class {
 	'constructor'() {
 		Object.defineProperty(this, '_bound_events', {
-            value: {}
-        });
+			value: {}
+		});
 	}
 
 	'raise_event'() {
@@ -1792,7 +1794,9 @@ class Evented_Class {
 		let target = this;
 		let c, l, res;
 
-		if (sig == '[s]') {
+		//console.log('sig', sig);
+
+		if (sig === '[s]') {
 			let target = this;
 			let event_name = a[0];
 			let bgh = this._bound_general_handler;
@@ -1821,7 +1825,7 @@ class Evented_Class {
 		// Seems to call more functions.
 		//  Not allowing an array to be the event object.
 
-		if (sig == '[s,a]') {
+		if (sig === '[s,a]') {
 			let be = this._bound_events;
 
 			// And its general bound events as well.
@@ -1846,7 +1850,7 @@ class Evented_Class {
 
 
 
-		if (sig == '[s,B]') {
+		if (sig === '[s,B]') {
 			let be = this._bound_events;
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];
@@ -1870,7 +1874,7 @@ class Evented_Class {
 			}
 		}
 
-		if (sig == '[s,b]') {
+		if (sig === '[s,b]') {
 			let be = this._bound_events;
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];
@@ -1894,7 +1898,7 @@ class Evented_Class {
 			}
 		}
 
-		if (sig == '[s,n]') {
+		if (sig === '[s,n]') {
 			let be = this._bound_events;
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];
@@ -1918,7 +1922,7 @@ class Evented_Class {
 			}
 		}
 
-		if (sig == '[s,o]') {
+		if (sig === '[s,o]' || sig === '[s,?]') {
 			let be = this._bound_events;
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];
@@ -2078,11 +2082,100 @@ class Evented_Class {
 	}
 };
 
+
+
+var vectorify = n_fn => {
+	let fn_res = fp(function (a, sig) {
+		//console.log('vectorified sig ' + sig);
+		if (a.l > 2) {
+			var res = a[0];
+			for (var c = 1, l = a.l; c < l; c++) {
+				res = fn_res(res, a[c]);
+				// console.log('res ' + res);
+			}
+			return res;
+		} else {
+			if (sig == '[n,n]') {
+				return n_fn(a[0], a[1]);
+			} else {
+				// will need go through the first array, and the 2nd... but
+				// will need to compare them.
+				var ats = atof(a);
+				//console.log('ats ' + stringify(ats));
+				if (ats[0] == 'array') {
+					if (ats[1] == 'number') {
+						var res = [],
+							n = a[1], l = a[0].length, c;
+						for (c = 0; c < l; c++) {
+							res.push(fn_res(a[0][c], n));
+						}
+						//each(a[0], (v, i) => {
+						//	res.push(fn_res(v, n));
+						//});
+						return res;
+					}
+					if (ats[1] == 'array') {
+						if (ats[0].length != ats[1].length) {
+							throw 'vector array lengths mismatch';
+						} else {
+							var arr2 = a[1], l = a[0].length, c, res = new Array(l);
+							for (c = 0; c < l; c++) {
+								res[c] = fn_res(a[0][c], arr2[c]);
+							}
+							//each(a[0], (v, i) => {
+							//	res.push(fn_res(v, arr2[i]));
+							//});
+							return res;
+						}
+					}
+				}
+			}
+		};
+
+	});
+	return fn_res;
+};
+
+const n_add = (n1, n2) => n1 + n2,
+	n_subtract = (n1, n2) => n1 - n2,
+	n_multiply = (n1, n2) => n1 * n2,
+	n_divide = (n1, n2) => n1 / n2;
+const v_add = vectorify(n_add),
+	v_subtract = vectorify(n_subtract),
+	v_multiply = vectorify(n_multiply),
+	v_divide = vectorify(n_divide);
+
+
+
+
+var vector_magnitude = function (vector) {
+	// may calculate magnitudes of larger dimension vectors too.
+	// alert(tof(vector[0]));
+	// alert(vector[0] ^ 2);
+
+	var res = Math.sqrt((Math.pow(vector[0], 2)) + (Math.pow(vector[1], 2)));
+	return res;
+
+};
+
+var distance_between_points = function (points) {
+	var offset = v_subtract(points[1], points[0]);
+	//console.log('offset ' + stringify(offset));
+	return vector_magnitude(offset);
+}
+
+
+
+
 var p = Evented_Class.prototype;
 p.raise = p.raise_event;
 p.trigger = p.raise_event;
 p.subscribe = p.add_event_listener;
 p.on = p.add_event_listener;
+
+// Nice if this had some vector manipulation functions.
+// lang-plus
+
 
 let lang_mini = {
 	'each': each,
@@ -2133,7 +2226,19 @@ let lang_mini = {
 	'get_arr_tree_value': get_arr_tree_value,
 	'deep_arr_iterate': deep_arr_iterate,
 	'prom': prom,
-	'Evented_Class': Evented_Class
+	'Evented_Class': Evented_Class,
+
+	'vectorify': vectorify,
+	'v_add': v_add,
+	'v_subtract': v_subtract,
+	'v_multiply': v_multiply,
+	'v_divide': v_divide,
+	'vector_magnitude': vector_magnitude,
+	'distance_between_points': distance_between_points
+
+
+	// v_add v_subtract v_multiply v_divide
+
 };
 
 module.exports = lang_mini;

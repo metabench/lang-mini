@@ -275,6 +275,11 @@ let get_item_sig = (i, arr_depth) => {
 
 	// an option about how far into the array to look.
 
+	// observable support.
+	//  observables have a specific API.
+
+
+
 
 
 	// also want to be able to do polymorphic rearrangements.
@@ -314,6 +319,15 @@ let get_item_sig = (i, arr_depth) => {
 	} else if (t1 === 'function') {
 		res = 'f';
 	} else {
+
+		// see if it's an object first?
+		//  can use is_array.
+
+		// anyway, want the observable check here soon.
+		//  could do .__type_name check early.
+
+
+
 		let t = tof(i, t1);
 
 		//if (i === 0) {
@@ -364,6 +378,8 @@ let get_item_sig = (i, arr_depth) => {
 			res = 'c';
 		} else if (t === 'date') {
 			res = 'd';
+		} else if (t === 'observable') {
+			res = 'O';
 		} else if (t === 'regex') {
 			res = 'r';
 		} else if (t === 'buffer') { // may remove for non node.js.
@@ -393,7 +409,7 @@ let get_item_sig = (i, arr_depth) => {
 			res = 'u';
 		} else {
 
-			if (t == 'collection_index') {
+			if (t === 'collection_index') {
 				return 'X';
 			} else if (t === 'data_object') {
 				if (i._abstract) {
@@ -423,21 +439,7 @@ let get_item_sig = (i, arr_depth) => {
 
 				} else {
 
-					if (t === 'data_grid') {
-						if (i._abstract) {
-							res = '~G';
-						} else {
-							res = 'G';
-						}
-
-
-					} else {
-						//console.log('t', t);
-						res = '?';
-
-
-						//throw 'Unexpected object type ' + t;
-					}
+					res = '?';
 
 					//if ()
 
@@ -559,6 +561,57 @@ let functional_polymorphism = function (options, fn) {
 };
 
 let fp = functional_polymorphism;
+
+
+// multi-functional polymorphism next
+//  gets given a map of functions to call depending on the sig.
+//   with arrow functions it will be nicely concise code.
+
+// could even do wildcard matching such as [s,?,o]
+//  would need to do a few more checks / matches / thinking.
+
+// mfp itself will need to operate on:
+//  [o]      map sig fns
+//  [o,f]    map sig fns, post fn
+//  [f,o]    pre fn, map sig fns
+//  [f,o,f]  pre fn, map sig fns, post fn
+
+// are observables in the sig?
+//  O?
+
+const mfp = function() {
+	const a1 = arguments;
+	const sig1 = get_a_sig(a1);
+	console.log('sig1', sig1);
+
+	let fn_early, map_sig_fns, fn_late;
+
+	if (sig1 === '[o]') {
+		map_sig_fns = a1[0];
+	} else {
+		return 'mfp NYI';
+	}
+
+	if (map_sig_fns && !fn_early && !fn_late) {
+		return function() {
+			const a2 = arguments;
+			const l2 = a2.length;
+			const sig2 = get_a_sig(a2);
+			console.log('sig2', sig2);
+
+			if (map_sig_fns[sig2]) {
+				// call that function with the arguments, return its result.
+				return map_sig_fns[sig2].apply(this, a2);
+			}
+			// log it?
+
+		}
+	}
+
+
+}
+
+
 
 
 let arrayify = fp(function (a, sig) {
@@ -2195,6 +2248,7 @@ let lang_mini = {
 	'stringify': stringify,
 	'functional_polymorphism': functional_polymorphism,
 	'fp': fp,
+	'mfp': mfp,
 	'arrayify': arrayify,
 	'mapify': mapify,
 	'str_arr_mapify': str_arr_mapify,

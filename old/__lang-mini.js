@@ -7,6 +7,7 @@ let are_equal = require('deep-equal');
 //    so 0 as well.
 //  could be useful, fits in with JS, but a little dangerous :)
 
+
 // node only?
 //  
 
@@ -16,6 +17,7 @@ let are_equal = require('deep-equal');
 //   on the client.
 //  or a polyfill?
 
+
 // 01/07/2019 - Looks like it needs more work / overhaul on mfp.
 //  Possibly leave io transformation out of here?
 //   Or do more work on flexible calling?
@@ -23,13 +25,11 @@ let are_equal = require('deep-equal');
 // May need to be able to deal with arrays as single objects better in the sigs.
 //  A way of detecting arrays of some specified param types.
 
+
 // 04/07/2019 - lang-mini keeps expanding!
 //  want to get it working, but make it more compact before all that long...???
 //  need to make sure its very performant, possibly less abstraction is appropriate. maybe it is for very compact code. still wont be all that large anyway, and provides compactness features for use elsewhere.
 
-// Future lang mini feature:
-//  sigs that include generic types. eg a<n>. a<user_login> too will help.
-//   will be able to find and recognise these sigs more easily.
 
 // a way of doing this node only?
 //  what is the client-side workaround?
@@ -59,6 +59,7 @@ if (typeof window === 'undefined') {
 //   stages get named.
 
 // Define with mfp to give grammar?
+
 // Function registry too?
 
 let each = (collection, fn, context) => {
@@ -112,7 +113,6 @@ let each = (collection, fn, context) => {
 };
 
 let is_array = Array.isArray;
-
 let is_dom_node = function isDomNode(obj) {
 	return (!!obj && typeof obj.nodeType !== 'undefined' && typeof obj.childNodes !== 'undefined');
 };
@@ -160,8 +160,6 @@ let arr_like_to_arr = function (arr_like) {
 //  But a more advanced jsgui level could do this check, and have its own tof function.
 //  That would be jsgui-lang-html has the check for is control.
 
-
-
 // duck typing... could use grammar for this.
 
 let is_ctrl = function (obj) {
@@ -170,18 +168,12 @@ let is_ctrl = function (obj) {
 	return (typeof obj !== 'undefined' && obj !== null && is_defined(obj.__type_name) && is_defined(obj.content) && is_defined(obj.dom));
 };
 
-
 // Also a bit of node.js specific code.
 //  May make node version of jsgui-lang-essentials, jsgui-node-lang-essentials.
 
 //let node_err = new Error();
-
 // standard type names...
-
 // will load a variety of types?
-
-
-
 
 // Could make more efficient name loading.
 const map_loaded_type_fn_checks = {}, map_loaded_type_abbreviations = {
@@ -236,13 +228,9 @@ const map_loaded_type_names = invert(map_loaded_type_abbreviations);
 //  What properties they have?
 //   Array of type as a standard criteria?
 
-
-
-
 // Functions to detect them
 //  which don't have false positives.
 //  more flexibility in testing there.
-
 
 // Grammar definitions too.
 //  Need to have it so that a type can be defined in terms of its grammar.
@@ -250,11 +238,8 @@ const map_loaded_type_names = invert(map_loaded_type_abbreviations);
 // Need to get the (POJO) types system working so that the db setup system can (easily) recognise and deal with an array of users.
 //  Combine this with various other functional convenience systems to make more concise, clearer and powerful code.
 
-
-
 // Will keep this for the moment, but change to the Grammar class.
 //  Likely to have a lang-local grammar.
-
 
 const load_type = (name, abbreviation, fn_detect_instance) => {
 	// Need to load the appropriate types before we do some function setups?
@@ -263,10 +248,6 @@ const load_type = (name, abbreviation, fn_detect_instance) => {
 
 	//console.log('lang-mini load_type name', name);
 	//console.trace();
-
-
-
-
 
 	map_loaded_type_fn_checks[name] = fn_detect_instance;
 	map_loaded_type_names[abbreviation] = name;
@@ -1636,33 +1617,13 @@ const log = () => {};
 
 // Fairly efficient, but could tract indexes in a typed array....
 
-
-// Be able to not combine some of the items in the array.
-
-//  Meaning that the item is always returned as an array
-
-
-const combinations = (arr, arr_idxs_to_ignore) => {
+const combinations = (arr) => {
 
 	// Could calculate the combinatorial size to start with.
 	//  Could make an async version too....
 	//  Huge numbers of combinations can not have all the results stored at once, so could be an iterative process where the next gets requested.
 
-	// make a map of arr_idxs_to_ignore for checking...
 
-	const map_ignore_idxs = {};
-
-	if (arr_idxs_to_ignore) {
-		each(arr_idxs_to_ignore, idx_to_ignore => {
-			map_ignore_idxs[idx_to_ignore] = true;
-		});
-	}
-
-	// Then when ignoring some indexes, won't combo those ones.
-	//  Just keep them as an array.
-
-	// This incrementation system is fairly efficient compared to a recursing algorithm.
-	//  Using the combo algorithm can be used to prepare args for arrayified functions with multiple arrayified args.
 
 	const res = [];
 	//console.log('lang-mini combinations call');
@@ -1674,6 +1635,7 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 
 	// we have array of all the possible values.
 
+
 	// Need a multi-level iterator.
 	//  For each of them, iterate through all others
 
@@ -1681,24 +1643,18 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 	const l = arr.length;
 	const arr_idxs_num_options = new Uint32Array(l);
 
-	// but are we ignoring it...?
 
 	each(arr, (arr_item1, i1) => {
-
-		// check if we ignore that argument for arrayification / combo?
-
 		arr_idxs_num_options[i1] = arr_item1.length;
 	});
 	//console.log('arr_idxs_num_options', arr_idxs_num_options);
 	const arr_current_option_idxs = (new Uint32Array(l)).fill(0);
-	// 
-
-
-
 
 	//console.log('arr_current_option_idxs', arr_current_option_idxs);
+	
 	//let current_arg_index = arr.length - 1;
 	//let current_arg_subindex = 0;
+	//  
 
 	// while not complete, increment.
 	//  maybe will not have a function here.
@@ -1714,14 +1670,9 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 	//  Increment through multiple dimensions.
 	//  Could have a callback???
 
-
 	
 	const result_from_indexes = (arr, arg_indexes) => {
 		// two need to be the same length?
-
-		//  but don't look to the indexes when we are ignoring that arg?
-		//   
-
 		const res = new Array(l);
 		if (arg_indexes.length === l) {
 			for (var c = 0; c < l; c++) {
@@ -1741,15 +1692,6 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 	//   but in reality, incremention should go from right to left
 	//   check for the first that is below the maximum.
 	const incr = () => {
-
-
-		// Would need to not increment the columns that we are ignoring.
-
-
-
-
-
-
 		//console.log('pre incr arr_current_option_idxs', arr_current_option_idxs);
 		for (c = l - 1; c >= 0; c--) {
 			const ival = arr_current_option_idxs[c];
@@ -1780,9 +1722,6 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 		return true;
 	}
 	//console.log('arr_current_option_idxs', arr_current_option_idxs);
-
-	// but for the result from the indexes, we may ignore some of them
-
 	let vals = result_from_indexes(arr, arr_current_option_idxs);
 	res.push(vals);
 	//let inc_res = incr();
@@ -1826,6 +1765,15 @@ const map_native_type_sigs = {
 
 // mfp currently needs to derive specific / explicit sigs from a sig which could have the *+? modifiers.
 //  getting grammat to deal with such modifiers too?
+
+
+
+
+
+
+
+
+
 
 class Grammar {
 	constructor(spec) {
@@ -1921,7 +1869,7 @@ class Grammar {
 	load_grammar(grammar_def) {
 		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
 
-		//console.log('load_grammar');
+		console.log('load_grammar');
 
 		// function to resolve a definition:
 		//  need to get the types down to the native types
@@ -1965,10 +1913,10 @@ class Grammar {
 					// attempt resolution?
 					//return 
 					// look it up, get a new def...
-					//console.log('about to look up (resolve) def', def);
+					console.log('about to look up (resolve) def', def);
 					// look up this def name (both sing and plur?), see what it's made from.
 					const found_sing_def = sing_def[def];
-					//console.log('found_sing_def', found_sing_def);
+					console.log('found_sing_def', found_sing_def);
 					return found_sing_def;
 				}
 				/* else if (def === 'string') {
@@ -2178,21 +2126,29 @@ class Grammar {
 	// previously called 'sig' - but this gets the type name rather than the signature (which is abbreviated and can contain multiple items).
 	tof(item) {
 		// Could return a normal type if we don't find a type within the grammar.
+
 		// Check if it's an arguments object?
 		// Treat that as an array?
+
 		// eg [s,s] becomes user_login or user_credentials if that's defined.
+
 		//  the object could have multiple possible sigs.
 		//   return an array in that case?
+
 		// get the deep sig of the object (normal deep sig)
 		// then check that deep sig against the maps.
+
 		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+
 		// show it as an array in the deep sig?
 		//  not just commas?
 		//   maybe commas make the most sense when it's in an arguments object.
+
 		// Check to see if it's a plural type, given as an array?
 		//  Check if it's a plurality of known single types.
 		//  If so, we know the type as such a plural type.
 		//   Some functions would be defined with specific ways of handling some arguments / params given as plurals.
+
 		const titem = tf(item);
 		// And arguments object?
 		console.log('titem', titem);
@@ -2206,7 +2162,9 @@ class Grammar {
 			each(item, (subitem, c, stop) => {
 				//console.log('subitem', subitem);
 				const subitem_type = this.tof(subitem);
+
 				console.log('subitem_type', subitem_type);
+
 				if (c === 0) {
 					all_arr_items_type = subitem_type;
 				} else {
@@ -2256,16 +2214,23 @@ class Grammar {
 		let arr_sing;
 		if (titem === 'a') {
 			// make an unenclosed sig as well.
+
 			// lookup that / both against the definitions.
+
 			// unenclosed sigs....
+
 			const unenclosed_sig = item_deep_sig.substring(1, item_deep_sig.length - 1);
 			console.log('unenclosed_sig', unenclosed_sig);
+
 			// then lookup the unenclosed sig.
 			//  items likely wont be represented enclosed as an array.
+			
 			arr_sing = deep_sig_sing[unenclosed_sig];
+
 		} else {
 			arr_sing = deep_sig_sing[item_deep_sig];
 		}
+
 		// And have deep sigs where they are wrapped as arrays too?
 		// Could strip out the array markers ([, ]) ?
 		//  Want to be able to recognise the parameters when they are given as an array
@@ -2284,17 +2249,15 @@ class Grammar {
 
 	// Do need to get a signature out of arguments, arrays, objects.
 	sig(item, max_depth = -1, depth = 0) {
-
 		// what is this...?
+
 		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
 		// Extended signatures.
 		//  native types abbreviated
 		//  custom / grammar defined types not abbreviated. Clearer and less ambiguous that way.
 		//   maybe they will get abbreviations within the context of a grammar.
-		// Extended sig because it contains items which are not (always) abbreviated.
 
-		// Possibly need to test this outside of the current system.
-		//  Need to see why this signature is not working now.
+		// Extended sig because it contains items which are not (always) abbreviated.
 
 		const extended_sig = item => {
 			// go through it.
@@ -2304,130 +2267,132 @@ class Grammar {
 			// array
 			// object???
 			const ti = tf(item);
-			//console.log('getting grammar extended_sig of item', item);
-
 			// use this tof on the item?
 			//  will that detect 'arguments'? 
 			//  improve general tof for this?
 			// or tf?
 			//  where it can also return unabbreviated type names?
+
 			//console.log('Grammar sig extended_sig ti', ti);
 			let res = '';
 			let same_grammar_type;
-
 			const record_subitem_sigs = item => {
+				// see if they are all the same sig.
+				//  see if they are all grammar defined types.
+				//  set local variable if that's the case.
+
 				same_grammar_type = undefined;
-				let same_sig = undefined;
-
-				// Not sure why some misrecognition is going on.
-				//  
-
-				// This same grammar type is not properly working now.
-				//  Misreads them and makes plurals where they shouldnt be.
-
 				each(item, (subitem, c) => {
-					//console.log('subitem', subitem);
+					//console.log('');
 					if (c > 0) {
 						res = res + ',';
 					}
 					// check if it's not a native type...?
 					//console.log('subitem', subitem);
 					const sig_subitem = this.sig(subitem, max_depth, depth + 1);
+					//console.log('sig_subitem', sig_subitem);
 					// see if it's in the map of 'sing' in the grammar.
 					//console.log('sing_def[sig_subitem]', sing_def[sig_subitem]);
-
-					// no... need to check that the sig_subitem values are all the same.
-
-					if (same_sig === undefined) {
-						same_sig = sig_subitem;
-					} else {
-						if (sig_subitem !== same_sig) {
-							same_sig = false;
-							same_grammar_type = false;
-						}
-					}
-
-					if (same_sig) {
-						if (sing_def[sig_subitem]) {
-							//console.log('sing_def[sig_subitem]', sing_def[sig_subitem]);
-							// so two arrays together...?
-							//  need to be arrays with the right type inside though.
-							// We have got an item defined within the grammar.
-							//console.log('same_grammar_type === undefined', same_grammar_type === undefined);
-							//console.log('1) same_grammar_type', same_grammar_type);
-							if (same_grammar_type === undefined) {
-								same_grammar_type = sig_subitem;
-							} else {
-								if (same_grammar_type === sig_subitem) {
-	
-								} else {
-									same_grammar_type = false;
-								}
-							}
+					if (sing_def[sig_subitem]) {
+						// We have got an item defined within the grammar.
+						//console.log('same_grammar_type === undefined', same_grammar_type === undefined);
+						//console.log('1) same_grammar_type', same_grammar_type);
+						if (same_grammar_type === undefined) {
+							same_grammar_type = sig_subitem;
 						} else {
-	
+
+							if (same_grammar_type === sig_subitem) {
+
+							} else {
+								same_grammar_type = null;
+							}
 						}
+					} else {
+
 					}
-
-					//console.log('sig_subitem', sig_subitem);
-
+					//console.log(map_native_type_sigs[sig_subitem]);
+					// native type sigs...
+					//  check that it's not one of them.
+					// think we actually need the sig of the subitem.
 					res = res + sig_subitem;
 				});
 				//console.log('2) same_grammar_type', same_grammar_type);
-				//console.log('same_sig', same_sig);
-
-				//console.trace();
-				//console.log('res', res);
 			}
 
 			if (ti === 'A') {
+				// Arguments object
+				// get the tof of each item.
+				// record subitem sigs
+				// Maybe do lookup and replacement here.
 				record_subitem_sigs(item);
+				// res reprocessing / substitution?
+				//  check the res sig against the signatures in the grammar.
+				//console.log('pre return grammar sig res', res);
 				return res;
 			} else if (ti === 'a') {
+				// See if all items in the array are all the same grammar defined type.
+				//  If so, return the plural name of it if we have that.
+				// Need to do a fair bit more interpretation / logic to do with type recognition and fn calling.
+				//  Want it to be logical, medium-complex.
+				//  Not hugely. Make it extendable with relevant functions rather than all that much more complex.
+				// array
 				//res = res + '[';
 				record_subitem_sigs(item);
+
 				if (same_grammar_type) {
-
-					//console.log('same_grammar_type', same_grammar_type);
-					//console.trace();
-
 					const plur_name = sing_plur[same_grammar_type];
 					return plur_name;
 				} else {
 					//console.log('res', res);
-
-					// Seems like a problem in this part....
-					//  Possibly should do some more lower level tests.
-
-
 					const found_obj_type = obj_sig_sing[res];
 					//console.log('found_obj_type', found_obj_type);
 					//console.log('Object.keys(obj_sig_sing)', Object.keys(obj_sig_sing));
-
+					// deep_sig_sing
 					const found_deep_sig_type = deep_sig_sing[res];
-
-
 					//console.log('found_deep_sig_type', found_deep_sig_type);
 					//console.log('Object.keys(deep_sig_sing)', Object.keys(deep_sig_sing));
 					let found_type_sing;
-
-
 					if (found_deep_sig_type) {
-
-
 						if (found_deep_sig_type.length === 1) {
 							// unambiguous.
 							found_type_sing = found_deep_sig_type[0];
 						}
 					}
+					// And try with the enclosed result?
+					//  Want the deep sigs to be unenclosed?
+					//  Maybe the outer brackets do really help after all.
+					//   Not sure.
+					// may be worth looking up enclosed deep sigs?
+					//  storing the deep sigs in an unenclosed form makes the most sense.
+					//  they are not necessarily arrays, they are two items together - they COULD be enclosed in an array.
+					//console.log('found_type_sing', found_type_sing);
+					// look up to see if there is an abbreviation?
 					if (found_type_sing) {
 						return found_type_sing;
 					} else {
+
+						// look inside...
+
+						// looks wrong here...
+						//  get inner sigs according to the grammar.
+						//  need to test this too.
+
+						// Looks OK....
+
+
 						const enclosed_res = '[' + res + ']';
 						//console.log('pre return grammar sig enclosed_res', enclosed_res);
 						return enclosed_res;
 					}
 				}
+				//res = res + ']';
+				// look into the substitutions / definitions for the res we have now.
+				// 
+				// then use the stripped / unenclosed res for lookup (too?);
+				//  or be able to detect array-enclosed objects, make use of them.
+				//console.trace();
+				//throw 'NYI';
+
 			} else if (ti === 'o') {
 
 				if (max_depth === -1 || depth <= max_depth) {
@@ -2438,18 +2403,24 @@ class Grammar {
 						//console.log('vsig', vsig);
 						if (!first) {
 							res = res + ',';
+							
 						} else {
 							first = false;
 						}
 						res = res + '"' + key + '":' + vsig;
 					});
 					res = res + '}';
+					//console.log('grammar object sig res', res);
+					//console.log('item', item);
+					//throw 'stop';
 					return res;
 				} else {
 					return 'o';
 				}
+
 				// object
 				// go through the keys and the values
+				
 			} else if (ti === 's' || ti === 'n' || ti === 'b') {
 				return ti;
 			} else {
@@ -2467,7 +2438,7 @@ class Grammar {
 		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
 		let sig = this.sig(item);
 		let s_sig = sig.split(',');
-		//console.log('Grammar single_forms_sig s_sig', s_sig);
+		console.log('Grammar single_forms_sig s_sig', s_sig);
 		// then for each of them look up if we have a single form.
 		const arr_res = [];
 		each(s_sig, (sig_item, c) => {
@@ -2479,9 +2450,144 @@ class Grammar {
 		const res = arr_res.join(',');
 		return res;
 	}
+
+	// interpret(obj) function?
+	//  Says what it is according to the grammar?
+
+	/*
+	add_noun(def) {
+		// just take an object def for the moment to keep it simple
+
+		// Dont think we parse defs right here?
+		//  Or we need to?
+
+
+		console.log('add_noun def', def);
+
+		// single
+		//  word
+		//  def
+		// plural
+		//  word
+
+		const {single, plural} = def;
+
+		const single_word = single.word;
+
+		let plural_word;
+
+		if (plural) {
+			plural_word = plural.word;
+		}
+
+		console.log('single_word', single_word);
+		console.log('plural_word', plural_word);
+
+
+		//  
+
+
+		// singular form
+		//  word
+		//  definition
+		// plural form
+		//  word
+
+		// Not as clear.
+		//  Want to keep this code especially clear for the moment.
+
+		const examples = () => {
+			const arr_eg = ['user_login_credentials', 'username, password', 'users_login_credentials']
+			// Basically need to parse string definitions?
+			//  Be able to easil;y handle input as arrays as well as objects.
+
+			// Verbose object POJO grammar definitions for the moment.
+
+			// And could have a constraint function.
+			//  Some of those constraint functions will have their own grammar.
+			//   Work on that later once grammar basics are ready for use.
+
+			// parse defs to more verbose POJO structures.
+			//  OOP classes for storing / parsing defs could hold those basic structures.
+			//   Want to keep the parsed grammar structures simple and human-readable POJOs.
+
+			const eg_username2 = ['username', 'usernames', 'string']
+			// definitely looks simple that way!!!
+			//  but more liable for longer term problems?
+
+			// dealing with it when split into singular and plural...
+			//  having it in this object format does make sense. Could have shorthand functions to create them.
+
+			// Signify the plural with '+...' makes sense.
+			//  Would help conciseness too.
+
+			const egdefs = {
+				'username': {
+					plural: '+s',
+					type: 'string'
+				},
+				'password': {
+					plural: '+s',
+					type: 'string'
+				},
+
+				// could go into defining a user?
+				//  then the login credentials?
+				//   with items having parents?
+
+				// so a user can have a username, and password.
+				//  then the login credentials can be one data arrangement / item in the grammar.
+
+				'user_login_credentials': {
+					// Parsing / compiling definitions from string to POJO?
+					//  Lets take the defs only as POJOs for the moment.
+
+					// Defined as an array here.
+					//  Means it contains both properties / arguments.
+					//  The item could be presented as {username: ..., password: ...} too. Flexibility.
+					def: ['username', 'password'],                     // Definition of a (simple) compound object.
+					plural: 'users_login_credentials'
+				}
+			}
+
+			const eg_username = {
+				singular: {
+					word: 'username',
+					type: 'string'
+				},
+				plural: {    // +s  ?
+					word: 'usernames'
+				}
+			}
+
+			const _eg_username = {
+				singular: {
+					word: 'username',
+					def: 'string'
+				}
+			}
+
+			const eg1 = {
+				singular: {
+					word: 'user_login_credentials',
+					def: 'username, password'
+				},
+				plural: {
+					word: 'users_login_credentials'
+					// assumed to be an array, or even results of an observable. other systems can handle pluralities of different types.
+				}
+			}
+		}
+
+		// Will have various indexes of items and types.
+		//  Be able to get the signature from the definition POJO.
+	}
+	*/
+
 	// Add word / item
 	//  noun
 	//   and the noun has a definition.
+
 	//  An OO definition format may make the most sense logically and be easiest to debug.
 	//   Maybe not easiest to serialise and deserialise.
 
@@ -2492,22 +2598,68 @@ class Grammar {
 	//  nouns = objects basically
 	//   can be composed of other nouns
 	//    if so, that's its order.
+
 	// Verbs later.
 	//  They will be useful for providing more explanation of what functions do.
 	//   Maybe for indexing / categorising functions.
+	// 
 }
+
 // More usage of 'grammar' within mfp?
+
 // Arguments modifiers, other new functionality now.
+
 // Detecting level 0 arrays
 //  and seeing what the internal type is?
 //   any shorthand for this?
+
 // getting level 0 sigs on the mfp function call makes a lot of sense.
+
 // Parsing a sig according to a grammar?
 //  Not sure about that yet, but it's worth considering.
 
 const mfp = function() {
+
+	// May use a separate Grammar API?
+	//  Or separate out grammar parsing and processing from mfp.
+	//   Other systems could make use of object grammars.
+	//   Put object grammar systems within lang-mini.
+
+	// Definitely want a string shorthand grammar.
+	//  Define a few objects, define other objects in terms of them.
+	// Probably will mostly need to handle very simple cases concerning type checking and arranging a few parameters.
+
+	// grammar consisting of:
+	//  object definition
+	//  object recognition
+	//  object validation
+
+	// So this needs to be more recognition focused than json schema validators. Validation could be used to recognise, but it's maybe not the fastest way
+	//  Building up indexes of the object's properties.
+
+	// multi-function polymorphism
+	// more friendly polymorphism
+	// modern, friendly polymorphism
+	// 
+
+	// split into setup() and go() functions?
+	//log('');
+	//log('mfp\n---');
 	const a1 = arguments;
+	// should use grammar specific sigs where possible.
+	//  not for this part... it's fine.
 	const sig1 = get_a_sig(a1); // not deep sig here. This is for the mfp function's polymorphism.
+	//  use the sig from the grammar instead?
+	//  seems to make most sense.
+
+	//log('mfp sig1', sig1);
+	//console.trace();
+
+	// options object as well.
+
+	// default as well here?
+	//  get it to call automatically when there is no sig match.
+
 	let options = {};
 	let fn_pre, provided_map_sig_fns, inner_map_sig_fns = {}, inner_map_parsed_sigs = {}, arr_sig_parsed_sig_fns = [], fn_post;
 	//let tm_sig_fns = {};
@@ -2515,216 +2667,579 @@ const mfp = function() {
 	let fn_default;
 	// pre, default, post.
 	let single_fn;
-	let req_sig_single_fn;
+	// putting a skip test function in place.
 
+	// Sort out which argument object is which.
+	//  Run the inner function.
+	// This function itself needs some polymorphism but the function itself should implement that in a simple way on a low level, while still having clear code.
+
+	// allow pre / any of them to create a closure for other functions?
+	// invarients, varients.
+	//  or that's in ofp?
+
+	// it's ofp which is like call_multi.
+	//  ofp could have options of its own.
+	//  
+	// run during function setup / creation.
+	//log('Object.keys(inner_map_sig_fns)', Object.keys(inner_map_sig_fns));
 	// pre and post here?
 	if (sig1 === '[o]') {
+
+
+		// they won't just be simple signatures.
+
+		// will need to parse these.
+		// make sure there are no collisions too.
+
+		// parse_sig(sig, opts = {});
+
+		// parse signature array.
+		//  parse_sig creates an array.
+		//  will use signature arrays under the surface
+		//  possibly signature maps?
+
+		// go through all function signatures and parse them.
+		// as_given / declared
 		provided_map_sig_fns = a1[0];
 	} else if (sig1 === '[o,o]') {
+		// options, functions
+
+		//log('a1', a1);
+		//console.trace();
+		//throw 'stop';
 		options = a1[0];
 		provided_map_sig_fns = a1[1];
 	} else if (sig1 === '[o,f]') {
+		// options, functions
+
+		//log('a1', a1);
+		//console.trace();
+		//throw 'stop';
 		options = a1[0];
 		single_fn = a1[1];
-	} else if (sig1 === '[o,s,f]') {
-		options = a1[0];
-		req_sig_single_fn = a1[1];
-		single_fn = a1[2];
-		provided_map_sig_fns = {};
-		provided_map_sig_fns[req_sig_single_fn] = single_fn;
-		//inner_map_sig_fns[req_sig_single_fn] = single_fn;
 	} else if (sig1 === '[f,o]') {
+		// options, functions
+
+		//log('a1', a1);
+		//console.trace();
+		//throw 'stop';
 		single_fn = a1[0];
 		options = a1[1];
 	} else if (sig1 === '[f]') {
+		// options, functions
+
+		//log('a1', a1);
+		//console.trace();
+		//throw 'stop';
 		single_fn = a1[0];
+		//options = a1[1];
+		// a direct_mode option could help.
+		//  do need to be able to call the function.
+		//   if there are no sigs, and a single_fn, could send it through to that.
 	} else {
+		// a single function...
+		//  that will be the function called if there is a match.
+		//  need to match against the grammar.
+		//   and see what noun the function operates on.
 		console.log('sig1', sig1);
+		// default: '*'?
+
+		// direct_mode?
+		//  means not polymorphic, all function calls go to the function as normal.
+		//   put here for ease of use, and in case mfp offers more than polymorphism by default.
+
 		console.trace();
 		throw 'mfp NYI';
 	}
 	// then do some further initialisation in one function...?
+
 	//console.log('options', options);
 	//console.log('Object.keys(options)', Object.keys(options));
+
+
 	// Maybe a .async property isnt such a good idea.
+
+
+
+
 	let {single, name, grammar, verb, noun, return_type, return_subtype, pure, main, skip} = options;
-
-	//console.log('name', name);
-	//console.trace();
-
-
 	//console.log('1) !!skip', !!skip);
+
 	let parsed_grammar;
 	let identify, validate;
 	// 
+
 	let dsig = deep_sig;
 
+	// replace the grammar with parsed grammar?
+	// if we have a grammar object, we can parse / make sense out of that
+	//  the grammar object will have its internal representations using deep sigs I think.
 
-	// a single found return type.
-	//  and every inner function has specified / identifyable return type?
-	//   Shouldnt be so hard to identify this.
+	// deep_sig function?
+	//  gets the object sig and goes full depth.
+	// or depth of -1?
+
+	// deep signatures will definitely be of great use with identifying the objects given as params.
+	//  could also make use of deep signatures within mfp.
+	// deep signatures are still strings so would be fast to check against
+	//  one kind of way of representing an object arrangement.
+
+	// deep signatures is another piece of functionality that could do with examples and tests.
+	//  could make my own deep-equals based on it.
+
+	// deep_sig function.
+	//  mfp requires grammar
+	//  grammar requires deep_sig.
+	//   could make deep-sig module too.
+	//    best to keep the code inline here though, at least for the moment.
+
+	// an inner function may work well here once the variables have been assigned???
 
 
 
 
-
-
-
+	// config stage?
 	(() => {
 		// we may just have a single fn...
+
 		// parse / initialise the grammar....
+
 		// Not so sure how we will use grammar here. Grammar functionality is likely to be generalised on a lower level than mfp.
 		//  Typed POJO identification and matching is what I'm looking for now.
-		if (grammar) dsig = x => grammar.sig(x);
-		//console.log('provided_map_sig_fns', provided_map_sig_fns);
 
-		if (provided_map_sig_fns) {
+		if (grammar) {
+			//dsig = grammar.sig;
 
-			// Do we really need to parse them?
+			dsig = x => grammar.sig(x);
+			// copy the sig function...?
 
-			// look for a shared return type.
-			//  if they all return the same type (eg obs) we can judge this as an async function.
-			//   even if we get given array params, it will operate in async mode using them.
-			//    ie .async = true, other async specific parts of the system will make use of this, such as ofp.
+			console.log('mfp preparation, have grammar, but not using it right now');
+			// will use the grammar on function calls for arg reinterpretation.
 
-			if (provided_map_sig_fns.default) fn_default = provided_map_sig_fns.default;
+			// Will attach the grammar to the result function too.
+		}
 
-			each(provided_map_sig_fns, (fn, sig) => {
-				if (typeof fn === 'function') {
+		/*
+		if (single_fn) {
+			log('single_fn', single_fn);
+			console.trace();
 
-					// does it have return type?
-					//  does it say its async?
+			// maybe at this stage we should work out the different ways it can be called and assign it to those signatures?
+			//  for the moment, limit to:
+			//   enclosed in an array
+			//   not enclosed in an array
 
-					// look into its return type / whether it is async.
+			// This will involve looking into what array object is given.
+			//  Maybe we can focus on single depth array processing / creation where necessary.
+			// This will just answer issues to do with enclosing params in an array or not.
+			//  Want flexibility there. Want to make that flexibility 'free' to the programmer.
 
-					//console.log('fn', fn);
-					//console.log('fn._', fn._);
+			// Still do type checking on enclosed parameters
+			//  Better to have more processing at this stage than on function call.
+			//  Function setup can be made to take a bit longer, function calls should be as fast as possible.
 
-					//console.log('mfp setup each(provided_map_sig_fns) Object.keys(fn)', Object.keys(fn));
-					//console.trace();
-					// seems not to be working.
+			// signatures with array depth as well will be userful.
+			//  that is parse_item_sig with depth.
 
-					// function name as well...?
+			// could automatically derive alternative signatures from the grammar.
+			//  that would be faster than working out template matches on calling the function.
+			// defining the grammar, with automatic polymorphism, would really help.
+			//  this could turn out very performant too? will need to test that.
+			//   lang-mini will become much more advanced.
+
+			// parsing the grammar, creating signatures from it.
+			//  creating functions from the grammar that transform the params into the 'noun' form, then call the standard function.
+			// 
+
+			// '[[s,s]]'
+
+			// Parameters enclosed in array ([username, password])
+			// multiple parameters used     (username, password)
+			// parameters enclosed in object ({username: string, password: string})
+
+			throw 'NYI';
+		}
+		*/
+		if (provided_map_sig_fns && provided_map_sig_fns.default) fn_default = provided_map_sig_fns.default;
+		//log('Object.keys(provided_map_sig_fns)', Object.keys(provided_map_sig_fns));
+		//log('!!fn_default', !!fn_default);
+
+		// When not provided any sigs...
+		//  What pluralisation?
+		//  Or that's in ofp I think. (and arrayify).
+
+		each(provided_map_sig_fns, (fn, sig) => {
+			// the function must be a function?
+			//if (fn instanceof function)
+			//console.log('mfp setup, iterating provided sigs sig:', sig);
+
+			if (typeof fn === 'function') {
+				//console.log('fn is a function, as expected');
+				// 
+				//console.log('mfp_not_sigs', mfp_not_sigs);
+				// the sig will be a string...
+				// then the map of not sigs to ignore.
+				// is not a reserved sig eg default
+				//console.log('!mfp_not_sigs[sig]', !mfp_not_sigs[sig]);
+
+				if (!mfp_not_sigs[sig]) {
+					// Parse a sig according to the grammar?
+					//  what exactily is sig parsing for?
+					//  parse_sig is below mfp on the stack... nice.
+
+					// but see if anythin parsed is within the grammar?
 
 
-					// return type, async properties will help.
+					// possibly use a grammar parse_sig?
 
-					// sigs that are not sigs eg 'default'.
-					if (!mfp_not_sigs[sig]) {
-						const parsed_sig = parse_sig(sig);
-						//console.log('parsed_sig', parsed_sig);
-						//console.log('parsed_sig.modifiers', parsed_sig.modifiers);
-						const arr_args_with_modifiers = [];
-						const arr_args_all_modification_versions = [];
-						each(parsed_sig, (arg, i) => {
-							arr_args_all_modification_versions[i] = [];
-							if (arg.modifiers) {
-								const arg_num_modifiers = arg.modifiers.length;
-								//console.log('arg_num_modifiers', arg_num_modifiers);
-								// more than 1 modifier unsupported right now...?
-								if (arg_num_modifiers > 1) {
-									throw 'Use of more than 1 modifier is currently unsupported.';
-								} else if (arg_num_modifiers === 1) {
-									arr_args_with_modifiers.push([i, arg]);
-									const single_modifier = arg.modifiers[0];
-									//console.log('single_modifier', single_modifier);
-									if (single_modifier === '*') {
-										// 0 or more
-										arr_args_all_modification_versions[i].push('');
-										arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
-										// then need the plural name
-										//  look it up in the grammar
-										const plural_name = grammar.maps.sing_plur[arg.type_name];
-										//console.log('plural_name', plural_name);
-										arr_args_all_modification_versions[i].push(plural_name);
-									}
-									if (single_modifier === '+') {
-										arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
-										// then need the plural name
-										//  look it up in the grammar
-										const plural_name = grammar.maps.sing_plur[arg.type_name];
-										//console.log('plural_name', plural_name);
-										arr_args_all_modification_versions[i].push(plural_name);
-									}
-									if (single_modifier === '?') {
-										// worth having the 'nothing' or empty indicator?
-										//  does make sense in the results here.
-										arr_args_all_modification_versions[i].push('');
-										arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
-									}
+					const parsed_sig = parse_sig(sig);
+					console.log('parsed_sig', parsed_sig);
+					console.log('parsed_sig.modifiers', parsed_sig.modifiers);
+
+					// then the parsed sig is more programmatically explicit.
+					//  want to construct variety of function sigs. will use 0 1 and plurals.
+					//   going for that kind of flexibility right now.
+
+					// all of the params that can change in all of their possible versions.
+					//  not so sure how to code this multi-level loop...
+
+					// count and indexes of the args which have got modifiers.
+					//  some kind of incrementing / counting can be used to get all values of all of the args with modifiers.
+
+					// Create an array of the versions of what any of the modified args can accept.
+					//  Some modifications can allow some amount of flexibility, such as 0 or more.
+					//   0 or more for optional args that can also be given as a plural.
+
+					// maybe ? will mean optional (similar to nullable)
+
+
+					// A separate function to get the sig which only has singlular versions...
+					//  does rely on the grammar.
+
+					// The parsing of sigs should also parse the modifiers (think it does).
+					const arr_args_with_modifiers = [];
+					// Get the modified sig for each modifier in all states...?
+					//  or that part of the signature in all states
+					//   including returning ''
+
+					// for every part of the sig, can have an array of its possible versions.
+					//  and should use abbreviations where available.
+					//  some won't be possible
+					//   use both singular and plural where appropriate.
+					const arr_args_all_modification_versions = [];
+					each(parsed_sig, (arg, i) => {
+						arr_args_all_modification_versions[i] = [];
+
+						if (arg.modifiers) {
+							const arg_num_modifiers = arg.modifiers.length;
+							console.log('arg_num_modifiers', arg_num_modifiers);
+
+							// more than 1 modifier unsupported right now...?
+							if (arg_num_modifiers > 1) {
+								throw 'Use of more than 1 modifier is currently unsupported.';
+							} else if (arg_num_modifiers === 1) {
+
+								arr_args_with_modifiers.push([i, arg]);
+								const single_modifier = arg.modifiers[0];
+								//console.log('single_modifier', single_modifier);
+
+								if (single_modifier === '*') {
+									// 0 or more
+									arr_args_all_modification_versions[i].push('');
+									arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
+									// then need the plural name
+									//  look it up in the grammar
+									const plural_name = grammar.maps.sing_plur[arg.type_name];
+									//console.log('plural_name', plural_name);
+									arr_args_all_modification_versions[i].push(plural_name);
+								}
+								if (single_modifier === '+') {
+									arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
+									// then need the plural name
+									//  look it up in the grammar
+									const plural_name = grammar.maps.sing_plur[arg.type_name];
+									//console.log('plural_name', plural_name);
+									arr_args_all_modification_versions[i].push(plural_name);
+								}
+								if (single_modifier === '?') {
+									// worth having the 'nothing' or empty indicator?
+									//  does make sense in the results here.
+									arr_args_all_modification_versions[i].push('');
+									arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
+								}
+							}
+							// * modifier
+							// 0 or more
+							// param is optional
+							// param can accept plural.
+							// so can call the function without that param.
+						} else {
+							// no modification in the args....
+							arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
+						}
+					});
+					//console.log('arr_args_with_modifiers', arr_args_with_modifiers);
+					console.log('arr_args_all_modification_versions', arr_args_all_modification_versions);
+					const combo_args = combinations(arr_args_all_modification_versions);
+					console.log('combo_args', combo_args);
+					// and make combo sigs too.
+					//  for all of the combo args, add the relevant sigs.
+					const combo_sigs = [];
+					// and different combo sigs for dealing with undefined values differently?
+					//  another level of combo usage for this?
+
+					// Really best to get this done...
+					//  could do some later work on undefined parameters.
+					//   should be fine as a last stage either in setup or calling.
+					let i_first_of_last_undefined = -1;
+					each(combo_args, arg_set => {
+						let combo_sig = '';
+						// not just simple joining together?
+						//  or replace '' with 'u' for undefined.
+						//   and then could also delete the undefined ones (if they are last?)
+
+						// optional params being last makes sense.
+						//  should still handle null and undefined input coming in.
+
+						console.log('arg_set', arg_set);
+						// build up the string, with the comma.
+
+						each(arg_set, (arg, i) => {
+							let lsigb4 = combo_sig.length;
+							if (i > 0) {
+								combo_sig = combo_sig + ',';
+							}
+							if (arg === '') {
+								// empty string has multiple combinations?
+								//  could treat it as undefined.
+								//  then strip all the last undefined items too...?
+								//   so long as the params stay in a prectable order.
+								// don't add it?
+								// treat it as 'u'.
+								combo_sig = combo_sig + 'u';
+								if (i_first_of_last_undefined === -1) {
+									i_first_of_last_undefined = lsigb4;
 								}
 							} else {
-								// no modification in the args....
-								arr_args_all_modification_versions[i].push(arg.abbreviation || arg.type_name);
+								combo_sig = combo_sig + arg;
+								i_first_of_last_undefined = -1;
 							}
-						});
-						//console.log('arr_args_with_modifiers', arr_args_with_modifiers);
-						//console.log('arr_args_all_modification_versions', arr_args_all_modification_versions);
-						const combo_args = combinations(arr_args_all_modification_versions);
-						//console.log('combo_args', combo_args);
-						const combo_sigs = [];
-						let i_first_of_last_undefined = -1;
-						each(combo_args, arg_set => {
-							let combo_sig = '';
-							//console.log('arg_set', arg_set);
-							each(arg_set, (arg, i) => {
-								let lsigb4 = combo_sig.length;
-								if (i > 0) {
-									combo_sig = combo_sig + ',';
-								}
-								if (arg === '') {
-									combo_sig = combo_sig + 'u';
-									if (i_first_of_last_undefined === -1) {
-										i_first_of_last_undefined = lsigb4;
-									}
-								} else {
-									combo_sig = combo_sig + arg;
-									i_first_of_last_undefined = -1;
-								}
-							})
-							//console.log('combo_sig', combo_sig);
-							//console.log('i_first_of_last_undefined', i_first_of_last_undefined);
-							if (i_first_of_last_undefined > 0) {
-								const combo_sig_no_last_undefined = combo_sig.substr(0, i_first_of_last_undefined);
-								//console.log('combo_sig_no_last_undefined', combo_sig_no_last_undefined);
-								combo_sigs.push(combo_sig_no_last_undefined);
-							}
-							combo_sigs.push(combo_sig);
 						})
-						//console.log('combo_sigs', combo_sigs);
-						//console.log('*&*&* sig', sig);
-						if (combo_sigs.length > 0) {
-							each(combo_sigs, combo_sig => {
-								inner_map_sig_fns[combo_sig] = fn;
-							});
-						} else {
-							inner_map_sig_fns[sig] = fn;
+
+						console.log('combo_sig', combo_sig);
+						console.log('i_first_of_last_undefined', i_first_of_last_undefined);
+
+						if (i_first_of_last_undefined > 0) {
+							const combo_sig_no_last_undefined = combo_sig.substr(0, i_first_of_last_undefined);
+							console.log('combo_sig_no_last_undefined', combo_sig_no_last_undefined);
+							combo_sigs.push(combo_sig_no_last_undefined);
 						}
-						inner_map_parsed_sigs[sig] = parsed_sig;
-						arr_sig_parsed_sig_fns.push([sig, parsed_sig, fn]);
+
+						// look for alternate version(s) with all the undefined last params stripped.
+						//  just plain removal of all undefined items...?
+
+						// multiple combo sig versions do make sense here.
+						//  but try it all or nothing for the moment.
+
+						// first of the last undefined items...?
+
+						combo_sigs.push(combo_sig);
+					})
+
+					console.log('combo_sigs', combo_sigs);
+					console.log('*&*&* sig', sig);
+
+					if (combo_sigs.length > 0) {
+						// inner_map_sig_fns[sig] = fn;
+
+						each(combo_sigs, combo_sig => {
+							inner_map_sig_fns[combo_sig] = fn;
+						});
 					} else {
-						console.log('ommiting, not parsing sig', sig);
-						// treat a 'default' sig differenty.
-						//console.trace();
-						//throw 'stop';
+						inner_map_sig_fns[sig] = fn;
 					}
+
+					// assign the function calls for the combo sigs. DONE! :)
+
+					// then next stage will be fish in the options object to get an / the object of the required type.
+					//  will be able to set naming convention for more precision too.
+
+					// process these combo args...
+					//  make them into strings.
+
+					// give more thought to how the empty ones are handled - especially if an empty one is not last.
+
+					//console.trace();
+
+					//throw 'stop';
+
+					// and would need to go through each modifier, getting their modified value.
+					//  multiple modifiers (and just in theory so far) makes things somewhat more complicated here too.
+					//  need to get the modified params / sig for each of the modifications used in combination.
+
+					// so each modifier would have multiple modification possibilities.
+					//  seems like getting into too many combinatorials?
+
+					// just support one modifier for the moment.
+
+					// then a multi-level loop through each of them?
+					//  some kind of matrix of function versions?
+					//   for each of the modifiable items, recursively loop through the others?
+					//    looks more like a useful programming excercise to do.
+					//    right now there is only one such modified param being used.
+
+					// A test with more of them...?
+					//  0 or more users
+					//  1 or more cities
+
+					//  make a multi level iterator function?
+					//   iterates through all combinations of values provided...?
+					//   could even be an observable that updates its proportion complete?
+
+					// a combos / combinations function.
+					//  definitley looks like a useful and would be small piece of lang-mini.
+					//  universal enough.
+
+					// combinations(arr_args_all_modification_versions, combo => {});
+
+
+					// will check against this parsed sig?
+					//  want to setup the param transforms / rearrangements,
+					//  have that done soon.
+					//   not to complex
+					//   must run quickly.
+
+					// maps with params do seem easiest in some ways.
+					//  would be quickest to find and run.
+
+					// however, generic processing of an options object would help.
+					//  that will be one generic / widely applicable 'clever programming' case.
+					//  do that on the function call...?
+					//   and then provide the separate args as normal in the function call.
+					// parsed sig as an array.
+					//  will be more flexible than direct string matching.
+
+					//console.log('parsed_sig', parsed_sig);
+
+					// Will call that sig according to the grammar as well.
+					// then the whole parsed sig turned back to an abbreviated array?
+
+					//const unparsed_sig = mfp_unparse_sig(parsed_sig);
+					//log('unparsed_sig', unparsed_sig);
+					//log('sig', sig);
+
+					// have a few data structures that can be queried to find the best match....
+					//  not supporting wildcards anyway yet.
+
+					// unparsed_sig === sig anyway.
+					//  check this?
+
+					// and combo sigs too?
+					inner_map_parsed_sigs[sig] = parsed_sig;
+					// parsing the sigs? need to look at that in more detail.
+					//  parsed sigs will have more info.
+					//  just using string sigs as they are declared for the moment.
+					// inner_map_parsed_sigs
+					arr_sig_parsed_sig_fns.push([sig, parsed_sig, fn]);
+					//console.log('arr_sig_parsed_sig_fns', arr_sig_parsed_sig_fns);
+					// still keep the sigs as a text map too?
+					// do make a map of parsed sigs though.
+					// sig => parsed sig
+					// array of parsed sigs
+					//  
+					// array of parsed sigs with the fns...
+					// still needs to work as normal, like it used to.
+					//  regression tests would really help!
 				} else {
-					// could also have a string transformer.
-					//  Not so keen on doing even more lang features after stages and ofp....
-					// Maybe if it's quick.
-					console.log('fn', fn);
-					console.trace();
-					throw 'Expected: function';
-				};
-			});
-		}
-		
+					console.log('ommiting, not parsing sig', sig);
+					// treat a 'default' sig differenty.
+
+					//console.trace();
+					//throw 'stop';
+				}
+			} else {
+				// could also have a string transformer.
+				//  Not so keen on doing even more lang features after stages and ofp....
+				// Maybe if it's quick.
+
+				console.log('fn', fn);
+				console.trace();
+				throw 'Expected: function';
+			};
+		})
+
 		each(inner_map_sig_fns, (fn, sig) => {
 			tm_sig_fns = tm_sig_fns || {};
 			tm_sig_fns[sig] = true;
 		});
+
+		// parse the grammar?
+		//  use the grammar to make a new map?
+		//  so at this stage we find what equivalents there are?
+		//   or have a parameter conversion attempt system?
+
+		// want an efficient way to get from the function call with params to the single function call.
+		//  maybe user defined mapping functions will be simpler?
+		//  type conversion with mapping seems to be required here. Not so sure about that.
+		// could probably be made with little code.
+		//  creation of the signature maps and transformations may make sense.
+		//  attempting to parse as the given noun
+		//   then calling the single_fn
+		//  this seems best by far.
+
+		// Parsing parameters according to the grammar.
+		//  from each object in the grammar, can create a sig.
+		//   or multiple sigs?
+		//    such as within array, and not within array.
+
+		// Need parsing and conversion?
+		//  Or just generate another function where it's all given as the compound type (array)?
+
+		// then go through each of them, parsing the provided sig
+		// then we want the map / arr of sig fns that actually gets called / used.
+
 	})();
-	
+
+	// a different kind of match testing...
+
+	// only do pre and post if we find the mapped function?
+
+
+	/*
+	if (fn_pre) {
+		console.trace();
+		throw 'mfp NYI';
+
+	}
+	// then find and execute the mapped function.
+	//  if not found, execute the default.
+
+
+	if (fn_post) {
+		console.trace();
+		throw 'mfp NYI';
+	}
+	*/
+	// then we return the function.
+
+	// don't compare sigs?
+	//  sig.matches?
+	//   would slow down, but add flexibility.
+
+	// could have more optimization.
+	//  such as only switching on flexible matching where appropriate, such as if any function call sigs have any wildcards
+
+	// Then the options object is at play.
+	//  Expresses some info about the function as well.
+
+	// mfp is used in the definition of fnl now.
+	//  could make a test based on how it's used there.
+
+	//console.trace();
+	//throw 'stop';
+
+	// Need more specific testing and examples for mfp.
+	// both single and plur could be set to true when it can handle both.
 	const res = function() {
 		const a2 = arguments;
 		const l2 = a2.length;
@@ -2732,40 +3247,83 @@ const mfp = function() {
 		console.log('calling mfp function');
 		console.log('--------------------');
 		console.log('');
+		// Going to use deep_sig on this instead.
+		//const sig2 = get_a_sig(a2);
+		//console.log('a2', a2);
+		// will use the grammar if its available.
 		let mfp_fn_call_deep_sig;
+		// identification of an options object?
+		//  be able to find required params in that object, as well as the rest of the args...?
+		// create the ordered params instead...?
+
+		// local versions of tf and sig?
+		//  replace the general ones with the versions from the grammar.
 		let ltof = tof;
 		//let lsig = deep_sig;
 		const lsig = dsig;
 		let ltf = tf;
+		if (grammar) {
+			//mfp_fn_call_deep_sig = grammar.sig(a2);
+			// Should be done earlier?
+			console.log('mfp wrapped fn call, using grammar so setting lsig to grammar.sig');
+			//lsig = grammar.sig;
+			//lsig = x => grammar.sig(x);
+			//console.log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
+
+			// maybe be on particular lookout for an 'options' object?
+			//  where optional fields go?
+			//  or treat it as a general other params object.
+
+			// maybe don't just use the sig, but fish for items with specified types...
+			//  go through the object, looking for the objects that are required
+
+			// then package them up as an array and apply the function.
+
+			//  should be able to find / expect an object that contains various (required or optional params / args)
+
+			// go through the arguments?
+			//  deeper identification...?
+
+			// can create an array here of the ordered params.
+			//  put them in place when found.
+
+			//const ordered_params = [];
+			// go through the a2 args.
+			//  see which of them satisfy required criteria (according to the provided sigs).
+
+			// see if we can call it yet?
+			//  bearing in mind that some params could be supplied, as a plural, in an object...?
+
+			//  options object being an idiom?
+			//   see if it can fish out properties from that options object...?
+
+			// we do at least now have the correct, typed, calling sig.
+
+			// a way to provide all of the params in one object?
+			//  separating out varient and invarient?
+
+			// the function mfp def / sigs saying what to do with these?
+			//  for the moment want the maximum reasonable general purpose processing.
+
+			// could have alternative types...?
+			//  could automatically accept plurals in some places and act accordingly?
+			
+			// want as much as possible to be automatic, while not being ambiguous / unintuitive.
+			//  defining the input parametrs could make sense.
+			//  saying that some can optionally be plural.
+
+			// anyway.... code elswehere.
+
+			//console.trace();
+			//throw 'NYI';
+		} else {
+			//mfp_fn_call_deep_sig = deep_sig(a2);
+		}
 
 		mfp_fn_call_deep_sig = lsig(a2);
-
-		// the signature according to the grammar.
-		//  definitely having a problem with identification right now.
-
-
-
-
-		// seems like sig gets misidentified here.
-		//  not so sure how. seems very strange that it will misidentify the args its getting.
-
-
-
-
-
-		// 
-		
-		//console.log('* mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
-		//console.log('arguments', arguments);
-		//console.trace();
-
-		// Yes, very strange that it misidentifies the param.
-
-
-
-		// 
-
-
+		//console.log('');
+		//console.log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
+		//console.log('');
 		let do_skip = false;
 		//console.log('!!skip', !!skip);
 		if (skip) {
@@ -2778,23 +3336,158 @@ const mfp = function() {
 		//console.log('do_skip', do_skip);
 		if (!do_skip) {
 			if (inner_map_sig_fns[mfp_fn_call_deep_sig]) {
+				// call that function with the arguments, return its result.
+				//  apply, and not give the sig.
+				//  there has been a sig match anyway.
+				//return inner_map_sig_fns[sig2].call(this, a2, sig2);
+				// Apply rather than call here. Don't give it a, sig, it gets params the normal way.
 				return inner_map_sig_fns[mfp_fn_call_deep_sig].apply(this, a2);
 			} else {
-				//console.log('');
-				//console.log('need to do more advanced parameter matching');
-				//console.log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
-				//console.trace();
-				//console.log('Object.keys(inner_map_sig_fns)', Object.keys(inner_map_sig_fns));
+				// Possibility that there is an options / arguments / params object.
+				//  First try to identify the items there by name.
+				//   Least ambiguous way.
+
+				//  Then try to identify the items in the params obj by type.
+
+				//  Want to try intelligent rearrangements to try to find a match.
+				//   Will not be all that difficult.
+
+				// Do need to keep track of the params we have
+				//  Params we are looking for.
+
+				// Want to see what matches we have in terms of required types.
+				//  Steadily / rapidly getting closer to the result we want....
+
+				// Intelligence about what params we are using...
+				//  Params we are looking for
+
+				//  required, optional
+
+				//   what types they are
+
+				//  accepted / required
+				//  accepted / optional
+				//  found / required
+				//  found / optional
+
+				// If there is a default function, call that...?
+				//  Or just if no simple rearrangement is possible...?
+
+				console.log('');
+				console.log('need to do more advanced parameter matching');
+				console.log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
+				console.trace();
+
+				// then go through each param...?
+
+				// there will be multiple ways to call the function that have been defined.
+				//  or there could be.
+
+				// need to analyse each function call possibility.
+				//  know in advance what can transform into it?
+				
+				// knowing what parameters it expects
+				// seeing all parameters that can be fished out of / recognised from the parameters function was called with...
+
+				// options object processing makes sense.
+
+				// lets see what the accepted signatures are
+				//  however, we want more than just the signatures.
+				//  want a more comprehensive parameter list
+				//   most importantly object types
+				//   could be object names, but don't require them.
+
+				console.log('Object.keys(inner_map_sig_fns)', Object.keys(inner_map_sig_fns));
+				// the one to use...?
+
+				// should be easy enough to assemble the (few?) objects we have, and test them against the usable function sigs.
+				//  picking objects (or arrays) out of options objects by recognising their type will definitely be useful.
+
+				//console.log('Object.keys(inner_map_parsed_sigs)', Object.keys(inner_map_parsed_sigs));
+
+				// mapping from the sigs we have to the unrolled modifier versions...
+				// inner_map_parsed_sigs
+
+				// the sig has a wildcard here.
+				//  maybe need more advanced sig matching as well?
+				//   to match against wildcards (modifiers really)
+				//    modifier sig unrolling would make sense here.
+				//    modifier sig unrolling would be a major piece to making this work.
+
+				//const arr_accepted_required = [];
+				//const arr_accepted_optional = [];
+
+				// analysis of that the function takes.
+				//  the function could be defined with different ways to call it.
+
+				//  need to analyse all possible ways of calling it?
+				//   analyse the function call input params.
+				//    see which possible function call(s) we have a match for
+				//     which makes for the least input transformation?
+
+				// A pre-analysis of the function calls would be better...
+				//  anything we need to do here?
+
+				//
+
+				// Analysis of the parameters called with seems like the way to go.
+				//  match it against the preconstructed possible ways to call the function.
+				//   don't want a heavy-duty transformation stage.
+
+				// specific pattern of single object(s) given, then an options object with anything else.
+				//  check the last item to see if it's an options object.
+
+				// values matching the required types.
+
+				//  come up with a reconstructed sig.
+				//   that matches one of the required sigs.
+
+				// options_object_rearrangement()
+				//  function could be called with the values removed from an options object.
+				//  
+
+				// Recognising the options object would definitely help.
+				//  Conventionally the last / only object within the params.
+				//  The callback in some cases is also conventially the last function, after the options object, and the last param.
+
+
+				// So be able to find options object likely candidates.
+				//  Will be the last param, unless there is a function (callback?) after that.
+				//  However, mfp will focus on options object, callback is going out of use. Options object is in wide usage and regarded as a good practise.
+				//  
+
+
+				// Detect if we have been given an options object?
+				//  Does it (only) contain items of the type(s) we are looking for as params?
+				//   Read them by name?
+
+				// Can identify a candidate options object.
+				//  Then look through to see if it's providing required parameters?
+
+				// index of the last object
+				// index of the last function
+				//  want to at least be aware of callback functions.
+
+				// last function index
+				// last array index.
+
 				let idx_last_fn = -1;
 				let idx_last_obj = -1;
+
+				//console.log('a2', a2);
+
 				each(a2, (arg, i_arg) => {
 					//console.log('arg', arg);
 					i_arg = parseInt(i_arg, 10);
-					//console.log('i_arg', i_arg);
-					//console.log('tf(i_arg)', tf(i_arg));
+					console.log('i_arg', i_arg);
+					console.log('tf(i_arg)', tf(i_arg));
+
+					// get the argument's type
+					//  nth argument of that type
 					const targ = tf(arg);
 					// including longer names?
-					//console.log('targ', targ);
+
+					console.log('targ', targ);
 					// otherwise untyped object
 					if (targ === 'o') {
 						idx_last_obj = i_arg;
@@ -2803,84 +3496,302 @@ const mfp = function() {
 						idx_last_fn = i_arg;
 					}
 				})
-				//console.log('idx_last_fn', idx_last_fn);
-				//console.log('idx_last_obj', idx_last_obj);
-				//console.log('tf(idx_last_fn)', tf(idx_last_fn));
-				//console.log('tf(idx_last_obj)', tf(idx_last_obj));
+
+				console.log('idx_last_fn', idx_last_fn);
+				console.log('idx_last_obj', idx_last_obj);
+
+				console.log('tf(idx_last_fn)', tf(idx_last_fn));
+				console.log('tf(idx_last_obj)', tf(idx_last_obj));
+
 				const last_arg_is_fn = idx_last_fn > -1 && idx_last_fn === a2.length - 1;
 				const last_arg_is_obj = idx_last_obj > -1 && idx_last_obj === a2.length - 1;
 				const second_last_arg_is_obj = idx_last_obj > -1 && idx_last_obj === a2.length - 2;
-				//console.log('last_arg_is_fn', last_arg_is_fn);
-				//console.log('last_arg_is_obj', last_arg_is_obj);
-				//console.log('second_last_arg_is_obj', second_last_arg_is_obj);
+
+				console.log('last_arg_is_fn', last_arg_is_fn);
+				console.log('last_arg_is_obj', last_arg_is_obj);
+				console.log('second_last_arg_is_obj', second_last_arg_is_obj);
+
 				let possible_options_obj;
+				//let possible_callback_fn; // currently impossible....
+				
+
+				// go through it, seeing what types we have
+				//  extract to a map of objects of type.
+
+				// detect that it's not accepting an options object?
+				//  source code analysis coming?
+
+				// put the items into the options object into an array?
+				//  an array that starts with the previous arguments.
+
+				// ignore a callback for the moment.
+
+				/*
+
+				const looking_for_callbacks = false;  // maybe make this variable in the future.
+
+				if (looking_for_callbacks && last_arg_is_fn) {
+
+					// Don't count on this always being the callback.
+					//  Likely would need some more specification....
+
+					console.log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
+					console.trace();
+					throw 'Callback processing NYI';
+				}
+				*/
+
+
 				if (last_arg_is_obj) possible_options_obj = a2[idx_last_obj];
 				//console.log('possible_options_obj', possible_options_obj);
+
 				const new_args_arrangement = [];
 				for (let f = 0; f < idx_last_obj; f++) {
 					new_args_arrangement.push(a2[f]);
 				}
+
 				each(possible_options_obj, (value, key) => {
+					// ignore the key for the moment?
+					//  the key (attr) may have useful info. Think about it.
 					new_args_arrangement.push(value);
 				});
 
-
-				// Rearranging the sig here?
-				//  Not sure about that...
-
-
-				// Would be worth going through this enqueue system.
-				//  And sleeping soon enough...
-
-
-
-
-
-
+				// it's in an array right now.
+				//  want to get the sig not wrapped in the array.
+				//  should be an option in the sig function.
+				//  both normal sig (deep_sig) function as well 
 
 				let naa_sig = lsig(new_args_arrangement);
 				naa_sig = naa_sig.substring(1, naa_sig.length - 1);
 
 
+				//console.log('naa_sig', naa_sig);
+				//console.trace();
+
+				// then check it against the map of functions we can call by sig...
+
+				//console.log('');
+				//console.log('inner_map_sig_fns[naa_sig]', inner_map_sig_fns[naa_sig]);
+				//console.log('');
+
 				if (inner_map_sig_fns[naa_sig]) {
+					// call that function with the arguments, return its result.
+
+
+
+					//  apply, and not give the sig.
+					//  there has been a sig match anyway.
+					//return inner_map_sig_fns[sig2].call(this, a2, sig2);
+					// Apply rather than call here. Don't give it a, sig, it gets params the normal way.
 					return inner_map_sig_fns[naa_sig].apply(this, new_args_arrangement);
 				} else {
 					//const arr_found_required = [];
 					//const arr_found_optional = [];
-					//console.log('');
-					//console.log('need to look for params that can have pluralised calls.');
-					//console.log('!!fn_default', !!fn_default);
-					//console.log('!!single_fn', !!single_fn);
+
+					console.log('');
+					console.log('need to look for params that can have pluralised calls.');
+					// noy so sure about that... have ofp do this.
+					// match against array...
+					//  we dont attempt to match against the sig array yet.
+					//  a tree would be more performent for many sigs but less performent.
+		
+					// multiple matching sigs given?
+					//  even raise an error on function construction?
+		
+					//log('(not a bug) NYI match against sig array', arr_sig_parsed_sig_fns);
+
+					console.log('!!fn_default', !!fn_default);
+					console.log('!!single_fn', !!single_fn);
+		
 					if (fn_default) {
 						// Function preparation using the grammar?
+
 						return fn_default.call(this, a2, mfp_fn_call_deep_sig);
 					} else {
 						// could have the single function.
 						//  however, we apply it like sigged fns. 
+		
 						if (single_fn) {
+
+
+
 							console.log('pre apply single_fn');
 							return single_fn.apply(this, a2);
 						} else {
+		
+							// could possibly do a bit of type translation magic.
+							// has already checked against matches.
+		
+							// cutting out asyncronous transformations from here could help.
+							//  and specifically make some async transformation functions in fnl.
+		
+							// lang-mini is not so big on async.
+		
+							// async param transformations make mfp a bit too confusing.
+							//  may put this in stages and elsewhere.
+							//   planned for ofp though.
+							//    ofp may be best in fnl?
+		
 							console.log('Object.keys(inner_map_parsed_sigs)', Object.keys(inner_map_parsed_sigs));
 							console.trace();
 							console.log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
 							console.log('provided_map_sig_fns', provided_map_sig_fns);
+		
 							if (provided_map_sig_fns) log('Object.keys(provided_map_sig_fns)', Object.keys(provided_map_sig_fns));
 							console.log('Object.keys(inner_map_sig_fns)', Object.keys(inner_map_sig_fns));
+		
 							//console.log('a2', a2);
-							console.trace();
-							throw 'no signature match found. consider using a default signature. mfp_fn_call_deep_sig: ' + mfp_fn_call_deep_sig;
 
-							// will need to work more on the sing/plur ofp system.
-							//  must get it working properly.
+							console.trace();
+		
+							throw 'no signature match found. consider using a default signature. mfp_fn_call_deep_sig: ' + mfp_fn_call_deep_sig;
+		
+		
+							//console.log('attempting input param translation magic');
+							//console.trace();
+		
+							//  know the accepted types.
+							//  work out if we can transform what we have into any of the accepted types.
+		
+							// type_translation_magic
+		
+							//  will have some simple ones, not too many for the moment.
+							//   dealing with fairly intrinsic types.
+							//    such as accepts array, has obs
+							//     will collect the results into an array.
+		
+							// accepts obs, has readable stream...
+							// accepts buffer, has readable stream.
+		
+							// see if we can construct an accepted signature out of what we have.
+							//  consider the order to approach the search space.
+		
+							// see what allowed function sigs / deep sigs there are.
+		
+							//  not sure if we track both.
+							//   the parsed signatures too???
+		
+							// some auto type transformations will be intuitive and useful.
+							//  various standard types throughout the flow of a node application.
+		
+							// had buffer, accepts typed array 8???
+							//  typed array type abbreviations too?
+							//   should come soon somehow.
+							//    just one digit?
+							//     seems tricky.
+							//    could have multiple digits, like u8a?
+							//     a[uint8] ???
+		
+							// work on the Readable_Stream to buffer processing now...
+							//  but lay the groundwork for other type transformations.
+		
+							// could just have a very simple sig transformation system right now.
+		
+							// and we see what's allowed.
+		
+							// a search to try to get the allowed sig from what we have.
+							//  eg could automatically parse a string to a number.
+							//   or hex number.
+		
+							// type: 'hex string' - worth considering and incorporating.
+							//  then could convert a hex string to a number / integer easily enough automatically.
+		
+							// explicitly accepting hex strings.
+							//  testing for it.
+							//  specifying min and max / length of hex string in digits?
+		
+							// A lot can be done to improve code conciseness and versitility.
+							//  Lets see how performant it is / stays.	
+		
+							// eos-live will be a nice self-adjusting algorithm.
+							//  lang-mini and the lang-tools for jsgui3 are getting considerable bigger.
+							//   but I think it's worth it.
+		
+							// attempt signature transformation....
+							// attempt function call parameter(s) transformation.
+		
+							// check against a table of transformation functions here.
+		
+							// will be async or obs transformations?
+							//  will need to wait for data in some cases.
+							
+							// such as completing a read stream?
+							//  or use stream.end();?
+		
+							// and a promise transformation?
+		
+							// a function to run the function in a promise, using the existing input?
+		
+							// need to be more careful about where the arg transformations happen
+							//  possibly make this higher level. ofp?
+		
+							// could have a special case for when we have been given a promise as the arg.
+							//  different execution, this function call inside of a promise.
+		
+							// automatic handling of asyncronous input types.
+							//  maybe should be lower level than ofp?
+							//   could have an implementation of it here in mfp.
+		
+							// clearly dealing with streams, promises, and their intricacies.
+							//  just don't want huge code.
+		
+							// where does this get used?
+							//  as a last resort?
+		
+							// the asyncronous transformations possibly are best elsewhere.
+							//  ofp could handle asyncronous transformations.
+		
+							// these are the acceptable sigs....
+
+
+							// Just want to get this solved....
 
 
 
 						}
 					}
 				}
+				// then can put all the params together again in an array.
+				//  call it with that...
+				// 
+				// what params are accepted / required / optional
 			}
+			// log it?
 		}
+		//log('mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
+		//log('sig2', sig2);
+
+		// Definitely want to use the arg's deep sig.
+		// 10/06/19 - Need to get things more fully working and tested up to here.
+		//  See what expectations there are
+		//  See that it works based on them.
+		// Looks like it will work well with deep sig.
+		//  Need to test, make examples, use it.
+		//  Keen to use the platform this provides.
+		//   It's really worth documenting the platform, making examples that produce results, making tests that check the results are as expected / have not changed.
+		// mfp would also be useful in having programmatic function descriptions so that the examples and tests could be constructed automatically.
+		//console.trace();
+		//throw 'stop';
+		// not the deep sig here
+		//  possibly we want the deep sig?
+		//  or deep sig for resolving ambiguities?
+
+		// will need more testing and clarity there.
+		//  could be an option
+		//  calling_sig_reading_fn
+		//  fn_sig?
+		//   and different available sig functions
+		//    deep, shallow, deep array only
+		// Making this extensible would help.
+		//  It could wind up being relatively large, but want a simple and relatively small version within the app here.
+		//
+		// check each of the signature objects against the arguments here.
+		// pass through a and sig...
+		// match against inner_map_sig_fns by key
+		// match against arr_sig_parsed_sig_fns by going through them
+		//  only if we need to, such as with wildcards.
+		// returning the function result is very important!
+		//console.log('Object.keys(inner_map_sig_fns)', Object.keys(inner_map_sig_fns));
 	}
 
 	//log('single', single);
@@ -2889,54 +3800,81 @@ const mfp = function() {
 	//log('noun', noun);
 	//log('return_type', return_type);
 
-	// doesnt seem to be giving the name....?
+	if (name) res.name = name;
+	if (single) res.single = single;
+	if (skip) res.skip = skip;
+	if (grammar) res.grammar = grammar;
+	if (typeof options !== 'undefined' && options.async) res.async = options.async;
+	//console.log('single_fn', single_fn);
+	//console.trace();
 
-	// See https://bugs.chromium.org/p/v8/issues/detail?id=278
-	//  .name won't work
-
-	// Seems better to have a ._ object to store all these lang-assigned properties.
-	//  name, grammar, various other things from the options.
-	// Will be easier to reference it. Easier to make it an Evented_Class if wanted, for whatever reasons.
+	//if (single_fn.async) res.async = single_fn.async;
 
 
-	//console.log('pre set name', name);
-	//console.log('1) res.name', res.name);
 
-	const _ = {}
 
-	if (name) _.name = name;
-	//console.log('2) res.name', res.name);
-	if (single) _.single = single;
-	if (skip) _.skip = skip;
-	if (grammar) _.grammar = grammar;
-	if (typeof options !== 'undefined' && options.async) _.async = options.async;
-	if (main === true) _.main = true;
-	if (return_type) _.return_type = return_type;
-	if (return_subtype) _.return_subtype = return_subtype;
-	if (pure) _.pure = pure;
-	if (tm_sig_fns) _.map_sigs = tm_sig_fns;
-	//  just a truth map.
-	//   maybe want to enable direct calling of inner functions.
-	//    such as when they've already been identified.
+	// async...
 
-	if (Object.keys(_).length > 0) {
-		res._ = _;
+	// res.grammar = grammar;
+
+	//console.log('** main', main);
+	//console.log('** name', name);
+
+	if (main === true) res.main = true;
+
+	// want info on the function's accepted param sigs.
+	//  tm_accepted_param_sigs?
+	//   or have an array of them?
+	//  map_accepted_param_sigs?
+	//   map_param_sigs
+	//    and it maps to true.
+	//     or maps to what it returns?
+	//   could have different return types depending on params.
+
+
+	if (return_type) res.return_type = return_type;
+	if (return_subtype) res.return_subtype = return_subtype;
+	if (pure) res.pure = pure;
+
+	
+	// 
+
+	if (tm_sig_fns) res.map_sigs = tm_sig_fns;
+	return res;
+
+
+	// 
+
+
+	/*
+
+	if (inner_map_sig_fns && !fn_early && !fn_late) {
+		return function() {
+			const a2 = arguments;
+			const l2 = a2.length;
+			const sig2 = get_a_sig(a2);
+			log('sig2', sig2);
+
+			// pass through a and sig...
+
+			if (map_sig_fns[sig2]) {
+				// call that function with the arguments, return its result.
+				return map_sig_fns[sig2].call(this, a2, sig2);
+			} else {
+				if (map_sig_fns.default) {
+					map_sig_fns.default.call(this, a2, sig2);
+				}
+			}
+			// log it?
+
+		}
+	} else {
+		console.trace();
+		throw 'mfp NYI';
 	}
 
+	*/
 
-
-
-
-	//console.log('name', name);
-	//console.log('Object.keys(res)', Object.keys(res));
-	//console.log('3) res.name', res.name);
-
-	// name property of a function object?
-
-
-
-
-	return res;
 }
 
 // Arrayify may have a newer equivalent in the function that returns observables, accepts arrays, single objects, or observables.
@@ -3460,9 +4398,6 @@ let output_processors = {};
 //  That seems like a fairly big goal, want to get these things working on a simpler level and in collections.
 //  Will use some kind of polymorphic rearrangement to rearrange where suitable.
 
-
-// This one may get replaced with ofp.
-
 let call_multiple_callback_functions = fp(function (a, sig) {
 	// will look at the signature and choose what to do.
 	//if (sig == )
@@ -3484,6 +4419,7 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 	if (a.l == 1) {
 		//console.log('a', a);
 		//console.log('a[0].length', a[0].length);
+
 
 	}
 

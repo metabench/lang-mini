@@ -5,6 +5,12 @@
     "dependencies": {
         "deep-equal": "^1.0.1"
     },
+    "devDependencies": {
+        "fnl": "^0.0.11"
+    },
+    "comments": [
+        "using fnl to run the examples / (tests???) using an observable"
+    ],
     "engines": {
         "node": ">=9.0.0"
     },
@@ -14,5 +20,5 @@
         "type": "git",
         "url": "https://github.com/metabench/lang-mini.git"
     },
-    "version": "0.0.10"
+    "version": "0.0.11"
 }

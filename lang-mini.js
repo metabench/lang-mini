@@ -36,16 +36,80 @@ let are_equal = require('deep-equal');
 //  dynamic map loading maybe....
 //  or there are usable client-side implementations from browserify or elsewhere?
 
-const stream = require('stream');
-const Readable_Stream = stream.Readable;    // R
-const Writable_Stream = stream.Writable;    // W
-const Transform_Stream = stream.Transform;  // T
+
+// only if we are using node.
+//  can we use a stream polyfill?
+//  Duck typing of streams?
+//   Later loading of streams?
+
+// Not sure how to get browserify etc to overlook this reference...
+//  Maybe only load the stream module if we are running in node.js
+
+
+
+
+
+
+// Duck typing these streams may make the most sense.
+//  Or loading the stream types in with tests, if we see it's running in Node.
+
+// worth checking if we are running in node at an early stage before requiring the streams
+// makes sense for lang-mini to do a bit of checking of its operating environment.
+//  if that helps it make sense of what's available.
+
+
+
+
+const running_in_browser = typeof window !== 'undefined';
+const running_in_node = !running_in_browser;
+
+let stream = {
+	type: 'Undefined Object Proxy',
+	name: 'Stream'
+}
+
+let Readable_Stream, Writable_Stream, Transform_Stream;
+
+
+if (running_in_node) {
+	stream = require('stream');
+	Readable_Stream = stream.Readable;    // R
+	Writable_Stream = stream.Writable;    // W
+	Transform_Stream = stream.Transform;  // T
+}
+
+
+
+
+
+
+
+
+//const stream = require('stream');
+
+
+
+
+
+// Boolean flags such as 'browser' and 'node'.
+//  Could have other environment flags?
+
+// Loading in the stream types and abbreaviations only in node would make sense.
+//  Lower level loading into lang, outside of Grammar, definitely makes sense.
+
+
+
+
+
+
 
 // use duck typing instead?
 //  fix this later?
 
 // do need stream support.
 //  browser polyfill?
+
+
 
 if (typeof window === 'undefined') {
 	//exports.foo = {};
@@ -388,7 +452,6 @@ let tof = (obj, t1) => {
 			// observables could have that type name.
 			//  would fit in generally.
 
-
 			//console.log('typeof obj ' + typeof obj);
 			//console.log('obj === null ' + (obj === null));
 			// Catches observables and controls.
@@ -397,7 +460,6 @@ let tof = (obj, t1) => {
 			} else if (obj.__type_name) {
 				return obj.__type_name;
 			} else {
-
 
 				if (obj instanceof Promise) {
 					return 'promise';
@@ -413,7 +475,6 @@ let tof = (obj, t1) => {
 				if (obj instanceof Date) {
 					return 'date';
 				}
-
 
 				if (is_array(obj)) {
 					//res = 'array';
@@ -459,26 +520,25 @@ let tof = (obj, t1) => {
 		} else {
 			return 'undefined';
 		}
-
 	}
-
 	return res;
 };
-
-
 // type_abbreviation property on some objects / classes?
 
 // O for Observable and P for Promise?
 
-let tf = (obj) => {
+// Maybe 2 versions of this - node and not node?
 
+// different tests if running in node or not.
+//  is_node === true? Works OK now. 18/07/2019.
+
+
+let tf = (obj) => {
 	//let res = t1 || typeof obj;
 	// undefind by default?
 	// treat arguments and array both as 'a'???
 
 	//let res = 'u';
-
-
 	// need to detect the custom types first.
 	//  only if using_type_plugins.
 	//  for loading in types such as 'knex'.
@@ -546,13 +606,18 @@ let tf = (obj) => {
 		// Transform_Stream
 
 		// capitals?
-		if (obj instanceof Readable_Stream) {
-			return 'R';
-		} else if (obj instanceof Writable_Stream) {
-			return 'W';
-		} else if (obj instanceof Transform_Stream) {
-			return 'T';
-		} else if (obj instanceof Buffer) {
+
+		if (running_in_node) {
+			if (obj instanceof Readable_Stream) {
+				return 'R';
+			} else if (obj instanceof Writable_Stream) {
+				return 'W';
+			} else if (obj instanceof Transform_Stream) {
+				return 'T';
+			}
+		}
+
+		if (obj instanceof Buffer) {
 			return 'B';
 		} else if (obj instanceof Promise) {
 			return 'p';
@@ -677,12 +742,8 @@ let is_collection = function (obj) {
 	if (obj) {
 		if (obj.__type == 'collection') return true;
 	}
-
-
 	//this.__type = 'collection'
-
 	return false;
-
 }
 
 let stringify = JSON.stringify;
@@ -884,6 +945,8 @@ let _get_item_sig = (i, arr_depth) => {
 };
 
 
+
+
 // Will use get_a_sig in many cases for reading arguments.
 //  currently only shallow.
 
@@ -913,14 +976,26 @@ const get_item_sig = (item, arr_depth) => {
 	//  so tof can return knex :)
 
 	if (map_loaded_type_abbreviations[t]) {
+
+		// still check for the basic type...
+
+
 		return map_loaded_type_abbreviations[t];
 	} else {
-		console.log('map_loaded_type_abbreviations type name not found', t);
-		console.trace();
-		throw 'stop';
+		let bt = typeof item;
+		if (bt === 'object') {
+			if (is_array(item)) {
+				return 'a';
+			} else {
+				return 'o';
+			}
+		} else {
+			console.log('map_loaded_type_abbreviations type name not found', t);
+			console.log('bt', bt);
+			console.trace();
+			throw 'stop';
+		}
 	}
-
-
 	// Seems like knex type does get loaded properly now :).
 
 	// 

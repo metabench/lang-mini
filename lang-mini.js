@@ -315,7 +315,6 @@ const map_loaded_type_names = invert(map_loaded_type_abbreviations);
 //  Combine this with various other functional convenience systems to make more concise, clearer and powerful code.
 
 
-
 // Will keep this for the moment, but change to the Grammar class.
 //  Likely to have a lang-local grammar.
 
@@ -327,9 +326,6 @@ const load_type = (name, abbreviation, fn_detect_instance) => {
 
 	//console.log('lang-mini load_type name', name);
 	//console.trace();
-
-
-
 
 
 	map_loaded_type_fn_checks[name] = fn_detect_instance;
@@ -4038,11 +4034,9 @@ let to_arr_strip_keys = (obj) => {
 
 // Array of objects to keys values table
 
-
-
 let arr_objs_to_arr_keys_values_table = (arr_objs) => {
 	let keys = Object.keys(arr_objs[0]);
-
+	
 	let arr_items = [],
 		arr_values;
 	each(arr_objs, (item) => {
@@ -4326,7 +4320,6 @@ class Evented_Class {
 			// Could have it automatially add targets.
 			//  For the moment, want to keep this simpler.
 
-
 			// optional assign_target variable.
 			//  don't want to assign a target by default.
 			//  it's useful in tracking DOM events though, but we may well be able to find it through 'this' in the next call.
@@ -4390,10 +4383,14 @@ class Evented_Class {
 	}
 
 	'add_event_listener'() {
-		let a = Array.prototype.slice.call(arguments),
+
+		const {event_events} = this;
+
+		let a = Array.prototype.slice.call(arguments), // turns arguments to an array
 			sig = get_a_sig(a);
-		a.l = a.length;
-		if (sig == '[f]') {
+
+		//a.l = a.length;
+		if (sig === '[f]') {
 			this._bound_general_handler = this._bound_general_handler || [];
 			if (is_array(this._bound_general_handler)) {
 				//if (tof(this._bound_general_handler) == 'array') {
@@ -4401,7 +4398,7 @@ class Evented_Class {
 			};
 		}
 
-		if (sig == '[s,f]') {
+		if (sig === '[s,f]') {
 			// bound to a particular event name
 
 			// want the general triggering functions to be done too.
@@ -4419,7 +4416,15 @@ class Evented_Class {
 				//console.log('this', this);
 				//console.log('add_event_listener bei.length ' + bei.length);
 				bei.push(fn_listener);
-			};
+				if (event_events) {
+					this.raise('add-event-listener', {
+						'name': event_name
+					})
+				}
+			} else {
+				console.trace();
+				throw 'Expected: array';
+			}
 		}
 		return this;
 	}
@@ -4432,11 +4437,13 @@ class Evented_Class {
 		//  With some controls, we need to pass through
 
 		return this.add_event_listener.apply(this, arguments);
-
 	}
 	*/
 
 	'remove_event_listener'(event_name, fn_listener) {
+		const {event_events} = this;
+		//console.log('Evented_Class remove_event_listener', event_name);
+		//console.trace();
 		if (this._bound_events) {
 			let bei = this._bound_events[event_name] || [];
 			if (is_array(bei)) {
@@ -4450,33 +4457,49 @@ class Evented_Class {
 						c++;
 					}
 				}
+				//console.log('found', found);
 				if (found) {
 					bei.splice(c, 1);
+					//console.log('event_events', event_events);
+					if (event_events) {
+						this.raise('remove-event-listener', {
+							'name': event_name
+						});
+					}
 				}
-			};
+			} else {
+				console.trace();
+				throw 'Expected: array';
+			}
 		}
 		return this;
+	}
+
+	get bound_named_event_counts() {
+		const res = {};
+		if (this._bound_events) {
+			const keys = Object.keys(this._bound_events);
+			each(keys, key => {
+				res[key] = this._bound_events[key].length;
+			})
+		}
+		return res;
 	}
 	/*
 	'off'() {
 		// However, need to make use of some document events.
 		//  With some controls, we need to pass through
-
 		return this.remove_event_listener.apply(this, arguments);
-
 	}
 
 	*/
 	'one'(event_name, fn_handler) {
-
 		let inner_handler = function (e) {
-
 			//let result = fn_handler.call(this, e);
 			fn_handler.call(this, e);
 			this.off(event_name, inner_handler);
 			//return result;
 		};
-
 		this.on(event_name, inner_handler);
 	}
 };
@@ -4612,8 +4635,6 @@ let lang_mini = {
 
 	// however, could define a ui_server(ofp);
 	//  that would be a really good way of wrapping / expressing a function.
-
-	
 
 
 	'arrayify': arrayify,

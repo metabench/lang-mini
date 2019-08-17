@@ -3283,48 +3283,51 @@ let clone = fp((a, sig) => {
 	let obj = a[0];
 	if (a.l === 1) {
 
-
-		let t = tof(obj);
-		if (t === 'array') {
-
-			// slice removes undefined items
-			// console.log('clone obj ' + stringify(obj));
-			// console.log('obj.length ' + obj.length);
-
-			let res = [];
-
-
-			each(obj, v => {
-				//console.log('i ' + i);
-				res.push(clone(v));
-			});
-
-
-			return res;
-
-			//return obj.slice();
-
-			// deep clone...?
-
-		} else if (t === 'undefined') {
-			return undefined;
-		} else if (t === 'string') {
-			return obj;
-		} else if (t === 'number') {
-			return obj;
-		} else if (t === 'function') {
-			return obj;
-		} else if (t === 'boolean') {
-			return obj;
-		} else if (t === 'null') {
-			return obj;
+		if (obj && typeof obj.clone === 'function') {
+			return obj.clone();
 		} else {
+			let t = tof(obj);
+			if (t === 'array') {
 
-			// extend not cloning the undefined values in the array properly,
-			// don't want them trimmed.
+				// slice removes undefined items
+				// console.log('clone obj ' + stringify(obj));
+				// console.log('obj.length ' + obj.length);
 
-			return Object.assign({}, obj);
+				let res = [];
+
+				each(obj, v => {
+					//console.log('i ' + i);
+					res.push(clone(v));
+				});
+				return res;
+
+				//return obj.slice();
+
+				// deep clone...?
+
+			} else if (t === 'undefined') {
+				return undefined;
+			} else if (t === 'string') {
+				return obj;
+			} else if (t === 'number') {
+				return obj;
+			} else if (t === 'function') {
+				return obj;
+			} else if (t === 'boolean') {
+				return obj;
+			} else if (t === 'null') {
+				return obj;
+			} else {
+
+				// extend not cloning the undefined values in the array properly,
+				// don't want them trimmed.
+
+				return Object.assign({}, obj);
+			}
 		}
+
+
+		
 
 	} else if (a.l === 2 && tof(a[1]) === 'number') {
 		let res = [];
@@ -4501,6 +4504,34 @@ class Evented_Class {
 			//return result;
 		};
 		this.on(event_name, inner_handler);
+	}
+
+	'changes'(obj_changes) {
+		//const {map_changes} = this;
+		// changes being / having an array for each of the change names?
+		//  may as well...
+
+		if (!this.map_changes) {
+			this.map_changes = {};
+
+		}
+		each(obj_changes, (handler, name) => {
+			this.map_changes[name] = this.map_changes[name] || [];
+			this.map_changes[name].push(handler);
+		})
+
+		if (!this._using_changes) {
+			this._using_changes = true;
+			this.on('change', e_change => {
+				const {name, value} = e_change;
+				if (this.map_changes[name]) {
+					each(this.map_changes[name], h_change => {
+						h_change(value);
+					})
+				}
+			})
+		}
+
 	}
 };
 // oalias?

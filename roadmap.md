@@ -193,9 +193,17 @@ not using it now, too large and complex.
             Deeper level signatures may do the job.
 ```
 
-0.0.13? w word item signature type
+0.0.13? w word item signature type (not now, break / risk breaking API)
 can separate multiple string params when there is a space.
 
 ? Tests and examples built together.
 Building up larger examples?
 Documentation?
+
+
+
+0.0.14 
+typed array types in sigs?
+get_typed_array / gta function
+
+

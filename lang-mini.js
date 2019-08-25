@@ -125,6 +125,11 @@ if (typeof window === 'undefined') {
 // Define with mfp to give grammar?
 // Function registry too?
 
+
+// Use it to call a function multiple times with different parameter sets?
+
+// Could be a useful function calling utility.
+
 let each = (collection, fn, context) => {
 	// each that puts the results in an array or dict.
 	if (collection) {
@@ -243,6 +248,30 @@ let is_ctrl = function (obj) {
 // standard type names...
 
 // will load a variety of types?
+
+
+
+// Typed arrays...
+
+// Single character abbreviations for typed arrays, based on their type...
+//  Enhancing and making use of typing for typed arrays makes a lot of sense.
+
+// Longer abbreviations for typed arrays?
+
+
+//  c    char (named after c++ char)      
+//  i    integer (32, for safety?)
+//  allow 'i16 as abbreviation?  ui16?
+//  d  (taken by date)  double (like js number, but a typed array of them)
+
+//  abbreviations such as ui8 may be best. also i8? 
+
+// c for char could work.
+
+
+// And maybe a function that's different for getting typed array info...?
+//  Maybe it does not matter so much in terms of function access / calling.
+
 
 
 
@@ -442,6 +471,7 @@ let tof = (obj, t1) => {
 		if (typeof obj !== 'undefined') {
 			if (obj === null) {
 				//return 'null';
+				console.trace();
 				throw 'NYI';
 			}
 
@@ -4553,43 +4583,38 @@ var vectorify = n_fn => {
 	let fn_res = fp(function (a, sig) {
 		//console.log('vectorified sig ' + sig);
 		if (a.l > 2) {
-			var res = a[0];
-			for (var c = 1, l = a.l; c < l; c++) {
+			const res = a[0];
+			for (let c = 1, l = a.l; c < l; c++) {
 				res = fn_res(res, a[c]);
 				// console.log('res ' + res);
 			}
 			return res;
 		} else {
-			if (sig == '[n,n]') {
+			if (sig === '[n,n]') {
 				return n_fn(a[0], a[1]);
 			} else {
 				// will need go through the first array, and the 2nd... but
 				// will need to compare them.
-				var ats = atof(a);
+				const ats = atof(a);
 				//console.log('ats ' + stringify(ats));
-				if (ats[0] == 'array') {
-					if (ats[1] == 'number') {
-						var res = [],
-							n = a[1], l = a[0].length, c;
+				if (ats[0] === 'array') {
+					if (ats[1] === 'number') {
+						const res = [], n = a[1], l = a[0].length
+						let c;
 						for (c = 0; c < l; c++) {
 							res.push(fn_res(a[0][c], n));
 						}
-						//each(a[0], (v, i) => {
-						//	res.push(fn_res(v, n));
-						//});
 						return res;
 					}
-					if (ats[1] == 'array') {
-						if (ats[0].length != ats[1].length) {
+					if (ats[1] === 'array') {
+						if (ats[0].length !== ats[1].length) {
 							throw 'vector array lengths mismatch';
 						} else {
-							var arr2 = a[1], l = a[0].length, c, res = new Array(l);
-							for (c = 0; c < l; c++) {
+							const res = new Array(l), arr2 = a[1], l = a[0].length;
+							//let c;
+							for (let c = 0; c < l; c++) {
 								res[c] = fn_res(a[0][c], arr2[c]);
 							}
-							//each(a[0], (v, i) => {
-							//	res.push(fn_res(v, arr2[i]));
-							//});
 							return res;
 						}
 					}
@@ -4613,7 +4638,7 @@ const v_add = vectorify(n_add),
 	v_divide = vectorify(n_divide);
 
 
-var vector_magnitude = function (vector) {
+const vector_magnitude = function (vector) {
 	// may calculate magnitudes of larger dimension vectors too.
 	// alert(tof(vector[0]));
 	// alert(vector[0] ^ 2);
@@ -4623,11 +4648,77 @@ var vector_magnitude = function (vector) {
 
 };
 
-var distance_between_points = function (points) {
+const distance_between_points = function (points) {
 	var offset = v_subtract(points[1], points[0]);
 	//console.log('offset ' + stringify(offset));
 	return vector_magnitude(offset);
 }
+
+
+
+// ui8c?
+//  ui8x???  for both?
+//  
+
+
+
+const map_tas_by_type = {
+	'c': Uint8ClampedArray,
+	'ui8': Uint8Array,
+	// ui8x?
+	'i16': Int16Array,
+	'i32': Int32Array,
+	'ui16': Uint16Array,
+	'ui32': Uint32Array,
+	'f32': Float32Array,
+	'f64': Float64Array
+}
+
+const get_typed_array = function() {
+	// Some simple and optimal poly. No mfp right now for perf reasons.
+	const a = arguments;
+	let length, input_array;
+
+	// [type, length]
+	// [type, input_array]
+	//  seems simple enough.
+	const type = a[0];
+	if (is_array(a[1])) {
+		input_array = a[1];
+	} else {
+		length = a[1];
+	}
+	
+	const ctr = map_tas_by_type[type];
+
+	if (ctr) {
+
+		if (input_array) {
+			return ctr(input_array);
+		} else if (length) {
+			return ctr(length);
+		}
+	}
+
+
+	//if (input_array) {
+	//	return nre
+	//}
+
+
+
+	/*
+
+	if (input_array) {
+
+	} else {
+
+	}
+	*/
+
+
+}
+
 
 // Nice if this had some vector manipulation functions.
 // lang-plus
@@ -4712,7 +4803,10 @@ let lang_mini = {
 	'v_multiply': v_multiply,
 	'v_divide': v_divide,
 	'vector_magnitude': vector_magnitude,
-	'distance_between_points': distance_between_points
+	'distance_between_points': distance_between_points,
+
+	'get_typed_array': get_typed_array,
+	'gta': get_typed_array
 
 
 

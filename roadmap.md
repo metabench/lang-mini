@@ -207,3 +207,9 @@ typed array types in sigs?
 get_typed_array / gta function
 
 
+
+20/12/2019
+    Need to create / use wrappers to convert types in some systematic ways, not just as a function wrapper.
+
+    // convert(input, conversion_schema)
+    // fn_convert(schema) returns convert(input)

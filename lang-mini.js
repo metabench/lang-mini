@@ -1002,10 +1002,7 @@ const get_item_sig = (item, arr_depth) => {
 	//  so tof can return knex :)
 
 	if (map_loaded_type_abbreviations[t]) {
-
 		// still check for the basic type...
-
-
 		return map_loaded_type_abbreviations[t];
 	} else {
 		let bt = typeof item;
@@ -1022,11 +1019,6 @@ const get_item_sig = (item, arr_depth) => {
 			throw 'stop';
 		}
 	}
-	// Seems like knex type does get loaded properly now :).
-
-	// 
-
-
 }
 
 // will make a deep version too.
@@ -2606,7 +2598,18 @@ class Grammar {
 // Parsing a sig according to a grammar?
 //  Not sure about that yet, but it's worth considering.
 
+
+// More direct object normalisation would be useful.
+//  obj-norm module?
+
+// poly-convert - sensible and unused name.
+
 const mfp = function() {
+
+	// Function call argument conversion.
+	//   May change to general object conversion.
+	//   object transformations.
+
 	const a1 = arguments;
 	const sig1 = get_a_sig(a1); // not deep sig here. This is for the mfp function's polymorphism.
 	let options = {};
@@ -3040,6 +3043,48 @@ const mfp = function() {
 	return res;
 }
 
+// And a conversion_schema class?
+
+// more like an object / array that show input and output types.
+//  or multiple input types, one output type?
+
+// Look into doing this like mfp as well.
+// 
+
+// Defining object transformations.
+//  Carrying out object transformations.
+//  Objects (especially input) can be arguments object.
+//   Output more likely to be an instance of an OO class.
+
+// Parameter conversion and preparation.
+
+// Object / objects / arguments / parameters normalisation.
+
+// normalise / normalize(...)
+
+// norm(input, output_type)
+//  would need more on format definitions.
+//  not sure how much this should be in its own module / project.
+//  lang-mini became a place where tried and tested code got put, then lang-mini got extended a lot more.
+//  worth being careful about adding a new system to lang-mini.
+
+
+
+
+
+const convert = (input, conversion_schema) => {
+	// Conversion schema has types in and types out...?
+
+	// eg [bipp, [w, h]] => ColorspaceSize(bipp, Size2D(w, h))
+
+}
+
+// Transformations, transformation maps.
+
+
+
+
+
 // Arrayify may have a newer equivalent in the function that returns observables, accepts arrays, single objects, or observables.
 //  Want to also be able to specify both static and variable params, when calling a fn multiple times.
 
@@ -3208,7 +3253,6 @@ let arrayify = fp(function (a, sig) {
 		param_index = a[0], num_parallel = a[1], delay = a[2], fn = a[3];
 		process_as_fn();
 	}
-
 	// maybe done with pf for getting function signature.
 	// console.log('using arrayify');
 	// if (typeof param_index == 'undefined') param_index = 0;
@@ -4224,7 +4268,6 @@ class Evented_Class {
 					res.push(bgh[c].call(target, event_name));
 				}
 			}
-
 			if (be) {
 				let bei = be[event_name];
 				if (tof(bei) == 'array') {
@@ -4293,7 +4336,7 @@ class Evented_Class {
 		}
 		*/
 
-		if (sig === '[s,b]' || sig === '[s,s]' || sig === '[s,n]' || sig === '[s,B]' || sig === '[s,O]') {
+		if (sig === '[s,b]' || sig === '[s,s]' || sig === '[s,n]' || sig === '[s,B]' || sig === '[s,O]' || sig === '[s,e]') {
 			let be = this._bound_events;
 			let bgh = this._bound_general_handler;
 			let event_name = a[0];

@@ -1,0 +1,37 @@
+
+
+	/*
+
+    from mfp
+
+		const egopts = {
+			//single: true,
+			// know it's single because we give the plural of the noun?
+			// still, it would be nice to have the system recognise and store that.
+			single: true,
+			name: 'create_user',
+			// .noun???
+			// .vocab?
+			verb: 'create',
+			// defining of local object templates here.
+			//  will also help to recognise (for pluralising function) when there is an array of defined object types.
+			noun: {
+				user: {
+					plural: 'users',
+					// this implicitly tells it we have given it the singular form.
+					template: [['string', 'name'], ['string', 'password']] // both strings, password comes after name
+					//  the array template?
+					//  object templates being different?
+
+				}
+			},
+			return_type: 'observable' /// allow 'callback'???
+			//  may mention user id / whatever gets returned.
+
+			// saying that it returns an observable?
+			//  could then provide more info about the observable but saying it returns an observable will be some useful info at least.
+			//  later could provide more info about what type of data / results the observable will produce.
+			//  it's not as important with the create_user function probably, but it's still worth defining this info.
+		}
+
+	*/

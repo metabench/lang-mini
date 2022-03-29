@@ -1,0 +1,25 @@
+{
+    "name": "lang-mini",
+    "main": "lang-mini.js",
+    "license": "MIT",
+    "dependencies": {},
+    "cdeps": {
+        "deep-equal (try older)?": "^2.0.3"
+    },
+    "devDependencies": {
+        "fnl": "^0.0.17"
+    },
+    "comments": [
+        "using fnl to run the examples / (tests???) using an observable"
+    ],
+    "engines": {
+        "node": ">=9.0.0"
+    },
+    "description": "General purpose JavaScript functions, extracted from jsgui. Also includes Evented_Class",
+    "author": "James Vickers <james@metabench.com>",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/metabench/lang-mini.git"
+    },
+    "version": "0.0.21"
+}

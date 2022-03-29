@@ -7,7 +7,7 @@
         "deep-equal (try older)?": "^2.0.3"
     },
     "devDependencies": {
-        "fnl": "^0.0.17"
+        "fnl": "^0.0.20"
     },
     "comments": [
         "using fnl to run the examples / (tests???) using an observable"

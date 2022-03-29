@@ -1,93 +1,29 @@
-let are_equal = require('deep-equal');
-
-
-// 07/07/2019 - sig abbreviation idea - '!' type, meaning null or undefined.
-//  false too.
-//   if it == false?
-//    so 0 as well.
-//  could be useful, fits in with JS, but a little dangerous :)
-
-// node only?
-//  
-
-
-// only if in node.js.
-//  duck typing these will work better.
-//   on the client.
-//  or a polyfill?
-
-// 01/07/2019 - Looks like it needs more work / overhaul on mfp.
-//  Possibly leave io transformation out of here?
-//   Or do more work on flexible calling?
-
-// May need to be able to deal with arrays as single objects better in the sigs.
-//  A way of detecting arrays of some specified param types.
-
-// 04/07/2019 - lang-mini keeps expanding!
-//  want to get it working, but make it more compact before all that long...???
-//  need to make sure its very performant, possibly less abstraction is appropriate. maybe it is for very compact code. still wont be all that large anyway, and provides compactness features for use elsewhere.
-
-// Future lang mini feature:
-//  sigs that include generic types. eg a<n>. a<user_login> too will help.
-//   will be able to find and recognise these sigs more easily.
-
-// a way of doing this node only?
-//  what is the client-side workaround?
-//  dynamic map loading maybe....
-//  or there are usable client-side implementations from browserify or elsewhere?
-
-
-// only if we are using node.
-//  can we use a stream polyfill?
-//  Duck typing of streams?
-//   Later loading of streams?
-
-// Not sure how to get browserify etc to overlook this reference...
-//  Maybe only load the stream module if we are running in node.js
-
-
-
-
-
-
-// Duck typing these streams may make the most sense.
-//  Or loading the stream types in with tests, if we see it's running in Node.
-
-// worth checking if we are running in node at an early stage before requiring the streams
-// makes sense for lang-mini to do a bit of checking of its operating environment.
-//  if that helps it make sense of what's available.
-
-
 
 
 const running_in_browser = typeof window !== 'undefined';
 const running_in_node = !running_in_browser;
 
-let stream = {
-	type: 'Undefined Object Proxy',
-	name: 'Stream'
-}
-
 let Readable_Stream, Writable_Stream, Transform_Stream;
-
-
-if (running_in_node) {
-	stream = require('stream');
-	Readable_Stream = stream.Readable;    // R
-	Writable_Stream = stream.Writable;    // W
-	Transform_Stream = stream.Transform;  // T
+const get_stream = () => {
+	if (running_in_node) {
+		return (() => {
+			const stream = require('stream'); // wrapped (nested) requirement, so it won't be picked up by the client js builder.
+			Readable_Stream = stream.Readable;    // R
+			Writable_Stream = stream.Writable;    // W
+			Transform_Stream = stream.Transform;  // T
+			return stream;
+		})();
+		
+	} else {
+		//return {
+		//	type: 'Undefined Object Proxy',
+		//	name: 'Stream'
+		//}
+		return undefined;
+	}
 }
 
-
-
-
-
-
-
-
-//const stream = require('stream');
-
-
+const stream = get_stream();
 
 
 
@@ -99,10 +35,6 @@ if (running_in_node) {
 
 
 
-
-
-
-
 // use duck typing instead?
 //  fix this later?
 
@@ -110,13 +42,6 @@ if (running_in_node) {
 //  browser polyfill?
 
 
-
-if (typeof window === 'undefined') {
-	//exports.foo = {};
-	//let Stream = require('stream');
-} else {
-	//window.foo = {};
-}
 
 // Function stages here?
 //  a bit like call_multi?
@@ -130,7 +55,7 @@ if (typeof window === 'undefined') {
 
 // Could be a useful function calling utility.
 
-let each = (collection, fn, context) => {
+const each = (collection, fn, context) => {
 	// each that puts the results in an array or dict.
 	if (collection) {
 		// or see if the object has its own each function....?
@@ -180,20 +105,20 @@ let each = (collection, fn, context) => {
 	}
 };
 
-let is_array = Array.isArray;
+const is_array = Array.isArray;
 
-let is_dom_node = function isDomNode(obj) {
+const is_dom_node = function isDomNode(obj) {
 	return (!!obj && typeof obj.nodeType !== 'undefined' && typeof obj.childNodes !== 'undefined');
 };
 
-let get_truth_map_from_arr = function (arr) {
+const get_truth_map_from_arr = function (arr) {
 	let res = {};
 	each(arr, function (v, i) {
 		res[v] = true;
 	});
 	return res;
 };
-let get_arr_from_truth_map = function (truth_map) {
+const get_arr_from_truth_map = function (truth_map) {
 	let res = [];
 	each(truth_map, function (v, i) {
 		res.push(i);
@@ -203,7 +128,7 @@ let get_arr_from_truth_map = function (truth_map) {
 
 // not a truth map because 0 == false. Could use this but do different
 // check, like is_defined.
-let get_map_from_arr = function (arr) {
+const get_map_from_arr = function (arr) {
 	let res = {};
 	for (let c = 0, l = arr.length; c < l; c++) {
 		res[arr[c]] = c;
@@ -216,7 +141,7 @@ let get_map_from_arr = function (arr) {
 
 //let arrSliceCall = Array.prototype.slice.call;
 
-let arr_like_to_arr = function (arr_like) {
+const arr_like_to_arr = function (arr_like) {
 	let res = new Array(arr_like.length);
 	for (let c = 0, l = arr_like.length; c < l; c++) {
 		//res.push(arr_like[c]);
@@ -233,47 +158,11 @@ let arr_like_to_arr = function (arr_like) {
 
 // duck typing... could use grammar for this.
 
-let is_ctrl = function (obj) {
+const is_ctrl = function (obj) {
 
 	// something indicating all controls are controls?
 	return (typeof obj !== 'undefined' && obj !== null && is_defined(obj.__type_name) && is_defined(obj.content) && is_defined(obj.dom));
 };
-
-
-// Also a bit of node.js specific code.
-//  May make node version of jsgui-lang-essentials, jsgui-node-lang-essentials.
-
-//let node_err = new Error();
-
-// standard type names...
-
-// will load a variety of types?
-
-
-
-// Typed arrays...
-
-// Single character abbreviations for typed arrays, based on their type...
-//  Enhancing and making use of typing for typed arrays makes a lot of sense.
-
-// Longer abbreviations for typed arrays?
-
-
-//  c    char (named after c++ char)      
-//  i    integer (32, for safety?)
-//  allow 'i16 as abbreviation?  ui16?
-//  d  (taken by date)  double (like js number, but a typed array of them)
-
-//  abbreviations such as ui8 may be best. also i8? 
-
-// c for char could work.
-
-
-// And maybe a function that's different for getting typed array info...?
-//  Maybe it does not matter so much in terms of function access / calling.
-
-
-
 
 
 // Could make more efficient name loading.
@@ -437,7 +326,7 @@ const grammar = (obj_def) => {
 
 
 // may change to the jq_type code.
-let tof = (obj, t1) => {
+const tof = (obj, t1) => {
 
 	// remove t1?
 	//  seems useless / undefined.
@@ -470,9 +359,9 @@ let tof = (obj, t1) => {
 	if (res === 'object') {
 		if (typeof obj !== 'undefined') {
 			if (obj === null) {
-				//return 'null';
-				console.trace();
-				throw 'NYI';
+				return 'null';
+				//console.trace();
+				//throw 'NYI';
 			}
 
 			// observables could have that type name.
@@ -559,7 +448,7 @@ let tof = (obj, t1) => {
 //  is_node === true? Works OK now. 18/07/2019.
 
 
-let tf = (obj) => {
+const tf = (obj) => {
 	//let res = t1 || typeof obj;
 	// undefind by default?
 	// treat arguments and array both as 'a'???
@@ -606,10 +495,8 @@ let tf = (obj) => {
 	if (res === 'number' || res === 'string' || res === 'function' || res === 'boolean'|| res === 'undefined') {
 		return res[0];
 	} else {
-
 		// object?
 		//console.log('processing object');
-
 		// null? !?
 		//  can't use 'n'.
 		if (obj === null) {
@@ -622,15 +509,11 @@ let tf = (obj) => {
 			return 'control';
 		}
 		*/
-
 		// Buffer as well.
-
 		// Duck typing could be better?
 		//  or we have browser polyfill anyway???
-
 		// readable stream, writable stream, if in node.
 		// Transform_Stream
-
 		// capitals?
 
 		if (running_in_node) {
@@ -727,7 +610,7 @@ let tf = (obj) => {
 
 // Bug for a test case - checking if a function is an instanceOf stream.
 // like a sig?
-let atof = (arr) => {
+const atof = (arr) => {
 
 	let res = new Array(arr.length);
 	//each(arr, function(v, i) {
@@ -740,43 +623,20 @@ let atof = (arr) => {
 	return res;
 };
 
-let is_defined = (value) => {
+const is_defined = (value) => {
 		// tof or typeof
 
 		return typeof (value) != 'undefined';
 	},
 	isdef = is_defined;
 
-let is_data_object = function (obj) {
-
-	if (obj) {
-		if (obj.__type == 'data_object') return true;
-		if (obj.__type == 'collection') return true;
-	}
-
-	//this.__type = 'collection'
-
-	return false;
-
-}
-
 // will test for control using similar means as well.
 
-let is_collection = function (obj) {
-	//if (obj.__type == 'data_object') return true;
-
-	if (obj) {
-		if (obj.__type == 'collection') return true;
-	}
-	//this.__type = 'collection'
-	return false;
-}
-
-let stringify = JSON.stringify;
+const stringify = JSON.stringify;
 
 
 
-// better done in other ways now.
+
 let _get_item_sig = (i, arr_depth) => {
 
 	// an option about how far into the array to look.
@@ -969,10 +829,6 @@ let _get_item_sig = (i, arr_depth) => {
 	return res;
 
 };
-
-
-
-
 // Will use get_a_sig in many cases for reading arguments.
 //  currently only shallow.
 
@@ -1024,7 +880,7 @@ const get_item_sig = (item, arr_depth) => {
 // will make a deep version too.
 
 //  Curently only shallow.
-let get_a_sig = (a) => {
+const get_a_sig = (a) => {
 	// For arguments
 	// String building optimized for newer JS?
 
@@ -1248,7 +1104,7 @@ const deep_sig = (item, max_depth = -1, depth = 0) => {
 
 
 
-let trim_sig_brackets = function (sig) {
+const trim_sig_brackets = function (sig) {
 	if (tof(sig) === 'string') {
 		if (sig.charAt(0) == '[' && sig.charAt(sig.length - 1) == ']') {
 			return sig.substring(1, sig.length - 1);
@@ -1258,7 +1114,7 @@ let trim_sig_brackets = function (sig) {
 	}
 };
 
-let arr_trim_undefined = function (arr_like) {
+const arr_trim_undefined = function (arr_like) {
 	let res = [];
 	let last_defined = -1;
 	let t, v;
@@ -1282,7 +1138,7 @@ let arr_trim_undefined = function (arr_like) {
 
 
 // The old function that's an inspiration for a bunch of newer functions.
-let functional_polymorphism = function (options, fn) {
+const functional_polymorphism = function (options, fn) {
 	let a0 = arguments;
 	if (a0.length === 1) {
 		fn = a0[0];
@@ -1342,7 +1198,7 @@ let functional_polymorphism = function (options, fn) {
 	}
 };
 
-let fp = functional_polymorphism;
+const fp = functional_polymorphism;
 
 
 // multi-functional polymorphism next
@@ -1624,26 +1480,6 @@ const mfp_unparse_sig = arr_sig => {
 //    though maybe is best to represent a function's arguments.
 
 
-// The most basic types for the moment.
-//  Maybe a smaller list is best, not observable etc.
-
-/*
-
-number for numbers of any kind: integer or floating-point.
-string for strings. A string may have one or more characters, there’s no separate single-character type.
-boolean for true/false.
-null for unknown values – a standalone type that has a single value null.
-undefined for unassigned values – a standalone type that has a single value undefined.
-object for more complex data structures.
-symbol for unique identifiers.
-
-Not so sure about the 'symbol' type.
-// Could be useful.
-
-
-*/
-
-
 // just string, number, and boolean for the moment.
 
 const map_grammar_def_abbreviations = {
@@ -1914,695 +1750,6 @@ const map_native_type_sigs = {
 //  * means 0 or more, so optional too.
 //  + means 1 or more, so can be plural.
 //    possibly will recieve the plural items through an observable (or other?) async result object.
-
-
-
-// mfp currently needs to derive specific / explicit sigs from a sig which could have the *+? modifiers.
-//  getting grammat to deal with such modifiers too?
-
-class Grammar {
-	constructor(spec) {
-		const eg_spec = {
-			name: 'User Auth Grammar'
-		}
-		const {name} = spec;
-		this.name = name;
-
-		// then the objects in a map...?
-		// Grammar itself can have a name.
-		// various maps / indexes?
-		// map of definitions by name
-		// map of names by abbreviation
-		// map of names by signatures?
-		//  could be overlap
-		// Each named item definitely within an index.
-		// Item signatures, compound item signatures...
-		//  Different signatures for different ways of arranging an object.
-		// Signature in object form
-		//  ie username and password.
-
-		// depth 1 sig seems like it may be very useful here.
-
-		// Check arguments against the grammar.
-		//  See if all of the arguments together are a specified object.
-		//   Items grouped as arrays?
-
-		// A single grammar object....
-		//  OO grammar seems like the best way for the moment.
-		//   can use it within functional programming.
-
-		// Whole bunch of different mappings...
-
-		// Singular
-		// Plural
-		// single word defs???
-		// single word sigs?
-		//  composed out of their components?
-
-		// Be able to get the sigs from the definitions.
-		//  Then can check against those sigs.
-
-
-		const eg_indexing = () => {
-			let map_sing_plur = {};
-			let map_plur_sing = {};
-
-			let map_sing_def = {};
-			let map_sig_sing = {};
-			//   map from the signature to the singular word.
-			//   maps of signatures at different levels.
-
-			// Compound objects...
-			//  
-			// Could assign more than one sig whan an object can be expressed in more than one way.
-
-			let map_sig0_sing = {};
-			let map_sig1_sing = {};
-			let map_sig2_sing = {};
-		}
-		// maps all in one object?
-		//  may be more convenient.
-		// and from sing to signatures (at different levels).
-
-		this.maps = {
-			sing_plur: {},
-			plur_sing: {},
-			sing_def: {},
-
-			// Deep sig as well.
-			//  some deep sigs would be too big though.
-			//   and want to create to object deep sigs too?
-
-
-			// but there could be multiple matching deep sigs.
-			//  need to put an array in place.
-			deep_sig_sing: {},
-			obj_sig_sing: {},
-
-			//sig_sing: {},
-			// different levels of signatures.
-			//  in its own map?
-
-			// sig levels definitely seems like the right way to identify what it is (in many cases).
-
-			sig_levels_sing: {}
-		}
-		this.load_grammar(spec.def);
-		// Getting the signatures at different levels would be very useful.
-	}
-
-	load_grammar(grammar_def) {
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
-
-		//console.log('load_grammar');
-
-		// function to resolve a definition:
-		//  need to get the types down to the native types
-		//   string, number, boolean
-		//   arrangements of object and array.
-		//  native types, or including other types built in such as 'integer'?
-		//   not now.
-
-		// or the types that have got definitions?
-
-		const resolve_def = (def) => {
-			// This being about resolving the types to native?
-			// can be resolved down to array and object?
-			// this will be about looking up the references.
-			const td = tf(def);
-			if (td === 'a') {
-
-				//console.log('');
-				//console.log('need to resolve an array def');
-				//console.log('');
-				const res = [];
-				each(def, def_item => {
-					//console.log('def_item', def_item);
-					res.push(resolve_def(def_item));
-				});
-				return res;
-			} else if (td === 's') {
-				// see what it actually is.
-				//  can look it up against native types.
-				//  or configured types?
-				if (def === 'string') {
-					// resolved to this
-					return 'string';
-				} else if (def === 'number') {
-					// resolved to this
-					return 'number';
-				} else if (def === 'boolean') {
-					// resolved to this
-					return 'boolean';
-				} else {
-					// attempt resolution?
-					//return 
-					// look it up, get a new def...
-					//console.log('about to look up (resolve) def', def);
-					// look up this def name (both sing and plur?), see what it's made from.
-					const found_sing_def = sing_def[def];
-					//console.log('found_sing_def', found_sing_def);
-					return found_sing_def;
-				}
-				/* else if (def === 'string') {
-					// resolved to this
-					return 'string';
-				} else if (def === 'string') {
-					// resolved to this
-					return 'string';
-				} */
-			} else if (td === 'n') {
-				console.trace();
-				throw 'NYI';
-			} else if (td === 'b') {
-				console.trace();
-				throw 'NYI';
-			}
-		}
-
-		//  And will / can resolved defs have internal arrays?
-		//   Not sure about this right now.
-		//   Need to make sure that it deals with the defs we are dealing with right now.
-
-		// Deep sig.
-
-		const resolved_def_to_sig = (resolved_def, level = 0) => {
-			const trd = tf(resolved_def);
-			//console.log('trd', trd);
-			if (trd === 's') {
-				if (resolved_def === 'string') {
-					return 's'
-				} else if (resolved_def === 'number') {
-					return 'n'
-				} else if (resolved_def === 'boolean') {
-					return 'b'
-				} /* else if (resolved_def === 'string') {
-					return 's'
-				} */
-			} else if (trd === 'a') {
-				// Probably best not to enclose in [] on level 0.
-				//  Don't necessarily want to say they are all in an array. That's a likely way they will be enclosed, don't want to assume its the case or force it.
-
-				// not so sure...
-				//  not sure about the outer level of it having [].
-				// The top level for array not having []?
-				//  keep track of the level we are at?
-
-				let res = '';
-				//res = res + '[';
-				if (level === 0) {
-
-				} else {
-					res = res + '[';
-				}
-				// then add the resolved sig for each item in the array
-				each(resolved_def, (item, c) => {
-					if (c > 0) {
-						res = res + ',';
-					}
-					res = res + resolved_def_to_sig(item, level + 1);
-				});
-				if (level === 0) {
-
-				} else {
-					res = res + ']';
-				}
-				//res = res + ']';
-				return res;
-			} else {
-				console.trace();
-				throw 'NYI';
-			}
-			return res;
-		}
-		// Could load into the various maps here.
-		each(grammar_def, (def1, sing_word) => {
-			//console.log('');
-			//console.log('sing_word', sing_word);
-			//console.log('def1', def1);
-
-			// def and plural.
-			//  plural just as a string I suppose.
-			const {def, plural} = def1;
-			//console.log('def', def);
-			//console.log('plural', plural);
-			// And work out the signatures based on what they are composed of.
-			//  Will later use this to enable easier calling of functions.
-			//  Will have a more complete model of what the function does by using grammars.
-			// Will have a variety of functions...
-			// Check object / arguments against a grammar.
-			// Get the signature of the object / arguments, making use of the types defined in the grammar.
-			//  Then incorporate it into the mfp function
-
-			// Deep sigs could be very useful.
-
-			/*
-			const obj_word_def = {
-				single: {
-					word: sing_word,
-					def: def
-				},
-				plural: {
-					word: plural
-				}
-			}
-			*/
-			//console.log('obj_word_def', obj_word_def);
-			// map of defs by sing word
-			//  sing_def
-			sing_def[sing_word] = def;
-			sing_plur[sing_word] = plural;
-			plur_sing[plural] = sing_word;
-			// see if we can get signatures from the def?
-			//  or direct checks of objects against defs?
-			// Then various different signatures?
-			//  Depends on the def.
-			// some polymorphic processing on the def...?
-			
-			const tdef = tf(def);
-			//console.log('tdef', tdef);
-			// instead use the def resolution function.
-			const resolved_def = resolve_def(def);
-			//console.log('resolved_def', resolved_def);
-			const resolved_def_sig = resolved_def_to_sig(resolved_def);
-			// Probably not worth encosing depth 0 array items.
-			//  not sure.
-			//console.log('resolved_def_sig', resolved_def_sig);
-			// and finding the deep sigs in a different format - 
-			//  creating the object type definitions, eg {username: 'j', password: 'p'}
-			//   shorthands, aliases and abbreviations could be of use too.
-			deep_sig_sing[resolved_def_sig] = deep_sig_sing[resolved_def_sig] || [];
-			deep_sig_sing[resolved_def_sig].push(sing_word);
-			// definitely want to create the object definition too...
-			//  only when there are multiple params?
-			// or can send around named param objects too..
-			//  as in name and value pairs.
-			//   dealing with object kvps could be useful at times. being able to specify the property name inside the object itself.
-			//   don't always want to rely on the js references.
-
-			// object sigs being more distinctive?
-			//  only with named properties?
-			//   ie where we get the name from the custom type?
-
-			// definitely want object and array parameters to be interchangable.
-			// if it's made out of custom types?
-			//  or named string properties.
-
-			// is def entirely composed out of custom types (that have been defined?)
-			//  we can use them as named parameters.
-
-			let def_is_all_custom_types = true;
-			each(def, (def_item, c, stop) => {
-				// where each item is a string...
-				const tdi = tf(def_item);
-				if (tdi === 's') {
-					if (sing_def[def_item]) {
-					} else {
-						def_is_all_custom_types = false;
-						stop();
-					}
-				} else {
-					def_is_all_custom_types = false;
-					stop();
-				}
-			});
-			//console.log('def_is_all_custom_types', def_is_all_custom_types);
-			// then if it's all custom, types, we can create the object sig.
-			// may need to differentiate more between different sig types.
-			//  how deep
-			//  if they make use of any grammars with their own definitions.
-			// being able to spot the function params being given as an object rather than array will be very useful.
-			//  creating an object out of the definitions.
-			let obj_sig;
-			if (def_is_all_custom_types) {
-				// create that definition...
-				// resolve each of the types down to native types.
-				obj_sig = '{';
-				each(def, (def_item, c, stop) => {
-					// we know they are all strings.
-					if (c > 0) {
-						obj_sig = obj_sig + ',';
-					}
-					// resolve each.
-					const resolved = resolve_def(def_item);
-					//console.log('def_item', def_item);
-					//console.log('resolved', resolved);
-					// and want the abbreviated resolved version.
-					const abr_resolved = resolved_def_to_sig(resolved);
-					//console.log('abr_resolved', abr_resolved);
-					obj_sig = obj_sig + '"' + def_item + '":'
-					obj_sig = obj_sig + abr_resolved;
-				});
-				obj_sig = obj_sig + '}';
-			}
-			//const egds = deep_sig({username: 'james', password:'pwd'});
-			//console.log('egds', egds);
-			//console.log('obj_sig', obj_sig);
-			if (obj_sig) {
-				obj_sig_sing[obj_sig] = obj_sig_sing[obj_sig] || [];
-				obj_sig_sing[obj_sig].push(sing_word);
-			}
-			//console.log('this.maps', this.maps);
-		})
-	}
-	// Maybe not exactly a sig.
-	//  would more more like a type?
-	//  extended / unabbreviated sig?
-	// previously called 'sig' - but this gets the type name rather than the signature (which is abbreviated and can contain multiple items).
-	tof(item) {
-		// Could return a normal type if we don't find a type within the grammar.
-		// Check if it's an arguments object?
-		// Treat that as an array?
-		// eg [s,s] becomes user_login or user_credentials if that's defined.
-		//  the object could have multiple possible sigs.
-		//   return an array in that case?
-		// get the deep sig of the object (normal deep sig)
-		// then check that deep sig against the maps.
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
-		// show it as an array in the deep sig?
-		//  not just commas?
-		//   maybe commas make the most sense when it's in an arguments object.
-		// Check to see if it's a plural type, given as an array?
-		//  Check if it's a plurality of known single types.
-		//  If so, we know the type as such a plural type.
-		//   Some functions would be defined with specific ways of handling some arguments / params given as plurals.
-		const titem = tf(item);
-		// And arguments object?
-		console.log('titem', titem);
-		if (titem === 'a') {
-			let all_arr_items_type;
-			// Or the sig of the sub items?
-			//  Probably want to check if they are types that are (unambiguously?) defined within this grammar.
-			// First check to see if all the items in the array are of a defined type.
-			//  as in, look at the deep sig of each item in the array.
-			//  are they all the same?
-			each(item, (subitem, c, stop) => {
-				//console.log('subitem', subitem);
-				const subitem_type = this.tof(subitem);
-				console.log('subitem_type', subitem_type);
-				if (c === 0) {
-					all_arr_items_type = subitem_type;
-				} else {
-					if (all_arr_items_type === subitem_type) {
-
-					} else {
-						all_arr_items_type = null;
-						stop();
-					}
-				}
-			});
-			// not found it as a compound / plural type...?
-			if (all_arr_items_type) {
-				// we have a plural type, given as an array.
-				//  plural types always given as an array or iterable?
-				console.log('has all_arr_items_type', all_arr_items_type);
-				// and if they are custom types.
-				//  not just 'string' etc.
-				if (!map_native_types[all_arr_items_type]) {
-					const res = sing_plur[all_arr_items_type];
-					return res;
-				}
-			} else {
-				console.log('no all_arr_items_type');
-				// Need to go through the items I think.
-			}
-			// Will check object types too?
-		} else {
-			// if it's just a string?
-			//  the grammar could have a way to differentiate strings.
-			//   could differentiate other numbers too.
-			//   maybe with a decision tree.
-			return tof(item);
-			/*
-			console.log('item', item);
-			console.log('titem', titem);
-			console.trace();
-			throw 'NYI';
-			*/
-		}
-		// And now deep sig is enclosing arrays.
-		//  Makes sense when we actually have an array.
-		//  When its two items in a row in a definition, don't want to assume it's an array.
-		const item_deep_sig = deep_sig(item);
-		// stripped deep sig...?
-		console.log('Grammar tof() item_deep_sig', item_deep_sig);
-		let arr_sing;
-		if (titem === 'a') {
-			// make an unenclosed sig as well.
-			// lookup that / both against the definitions.
-			// unenclosed sigs....
-			const unenclosed_sig = item_deep_sig.substring(1, item_deep_sig.length - 1);
-			console.log('unenclosed_sig', unenclosed_sig);
-			// then lookup the unenclosed sig.
-			//  items likely wont be represented enclosed as an array.
-			arr_sing = deep_sig_sing[unenclosed_sig];
-		} else {
-			arr_sing = deep_sig_sing[item_deep_sig];
-		}
-		// And have deep sigs where they are wrapped as arrays too?
-		// Could strip out the array markers ([, ]) ?
-		//  Want to be able to recognise the parameters when they are given as an array
-		//  As well as within an arguments object (representing the separate arguments)
-		//console.log('arr_sing', arr_sing);
-		if (arr_sing) {
-			if (arr_sing.length === 1) {
-				return arr_sing[0];
-			} else {
-				console.trace();
-				throw 'NYI';
-			}
-		}
-		// look up that deep sig.
-	}
-
-	// Do need to get a signature out of arguments, arrays, objects.
-	sig(item, max_depth = -1, depth = 0) {
-
-		// what is this...?
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
-		// Extended signatures.
-		//  native types abbreviated
-		//  custom / grammar defined types not abbreviated. Clearer and less ambiguous that way.
-		//   maybe they will get abbreviations within the context of a grammar.
-		// Extended sig because it contains items which are not (always) abbreviated.
-
-		// Possibly need to test this outside of the current system.
-		//  Need to see why this signature is not working now.
-
-		const extended_sig = item => {
-			// go through it.
-			//  native types / types below the grammar get abbreviated.
-			//  non-native types don't have abbreviations (for the moment) or get abbreviated.
-			// arguments object
-			// array
-			// object???
-			const ti = tf(item);
-			//console.log('getting grammar extended_sig of item', item);
-
-			// use this tof on the item?
-			//  will that detect 'arguments'? 
-			//  improve general tof for this?
-			// or tf?
-			//  where it can also return unabbreviated type names?
-			//console.log('Grammar sig extended_sig ti', ti);
-			let res = '';
-			let same_grammar_type;
-
-			const record_subitem_sigs = item => {
-				same_grammar_type = undefined;
-				let same_sig = undefined;
-
-				// Not sure why some misrecognition is going on.
-				//  
-
-				// This same grammar type is not properly working now.
-				//  Misreads them and makes plurals where they shouldnt be.
-
-				each(item, (subitem, c) => {
-					//console.log('subitem', subitem);
-					if (c > 0) {
-						res = res + ',';
-					}
-					// check if it's not a native type...?
-					//console.log('subitem', subitem);
-					const sig_subitem = this.sig(subitem, max_depth, depth + 1);
-					// see if it's in the map of 'sing' in the grammar.
-					//console.log('sing_def[sig_subitem]', sing_def[sig_subitem]);
-
-					// no... need to check that the sig_subitem values are all the same.
-
-					if (same_sig === undefined) {
-						same_sig = sig_subitem;
-					} else {
-						if (sig_subitem !== same_sig) {
-							same_sig = false;
-							same_grammar_type = false;
-						}
-					}
-
-					if (same_sig) {
-						if (sing_def[sig_subitem]) {
-							//console.log('sing_def[sig_subitem]', sing_def[sig_subitem]);
-							// so two arrays together...?
-							//  need to be arrays with the right type inside though.
-							// We have got an item defined within the grammar.
-							//console.log('same_grammar_type === undefined', same_grammar_type === undefined);
-							//console.log('1) same_grammar_type', same_grammar_type);
-							if (same_grammar_type === undefined) {
-								same_grammar_type = sig_subitem;
-							} else {
-								if (same_grammar_type === sig_subitem) {
-	
-								} else {
-									same_grammar_type = false;
-								}
-							}
-						} else {
-	
-						}
-					}
-
-					//console.log('sig_subitem', sig_subitem);
-
-					res = res + sig_subitem;
-				});
-				//console.log('2) same_grammar_type', same_grammar_type);
-				//console.log('same_sig', same_sig);
-
-				//console.trace();
-				//console.log('res', res);
-			}
-
-			if (ti === 'A') {
-				record_subitem_sigs(item);
-				return res;
-			} else if (ti === 'a') {
-				//res = res + '[';
-				record_subitem_sigs(item);
-				if (same_grammar_type) {
-
-					//console.log('same_grammar_type', same_grammar_type);
-					//console.trace();
-
-					const plur_name = sing_plur[same_grammar_type];
-					return plur_name;
-				} else {
-					//console.log('res', res);
-
-					// Seems like a problem in this part....
-					//  Possibly should do some more lower level tests.
-
-
-					const found_obj_type = obj_sig_sing[res];
-					//console.log('found_obj_type', found_obj_type);
-					//console.log('Object.keys(obj_sig_sing)', Object.keys(obj_sig_sing));
-
-					const found_deep_sig_type = deep_sig_sing[res];
-
-
-					//console.log('found_deep_sig_type', found_deep_sig_type);
-					//console.log('Object.keys(deep_sig_sing)', Object.keys(deep_sig_sing));
-					let found_type_sing;
-
-
-					if (found_deep_sig_type) {
-
-
-						if (found_deep_sig_type.length === 1) {
-							// unambiguous.
-							found_type_sing = found_deep_sig_type[0];
-						}
-					}
-					if (found_type_sing) {
-						return found_type_sing;
-					} else {
-						const enclosed_res = '[' + res + ']';
-						//console.log('pre return grammar sig enclosed_res', enclosed_res);
-						return enclosed_res;
-					}
-				}
-			} else if (ti === 'o') {
-
-				if (max_depth === -1 || depth <= max_depth) {
-					res = res + '{';
-					let first = true;
-					each(item, (value, key) => {
-						const vsig = this.sig(value, max_depth, depth + 1);
-						//console.log('vsig', vsig);
-						if (!first) {
-							res = res + ',';
-						} else {
-							first = false;
-						}
-						res = res + '"' + key + '":' + vsig;
-					});
-					res = res + '}';
-					return res;
-				} else {
-					return 'o';
-				}
-				// object
-				// go through the keys and the values
-			} else if (ti === 's' || ti === 'n' || ti === 'b') {
-				return ti;
-			} else {
-				return ti;
-			}
-		}
-		return extended_sig(item);
-	}
-
-	// single_forms_sig
-	//  get the sig back, but every plural form is singularised.
-
-	// annotate this as being a conversion function? with the verb being 'convert'?
-	single_forms_sig(item) {
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
-		let sig = this.sig(item);
-		let s_sig = sig.split(',');
-		//console.log('Grammar single_forms_sig s_sig', s_sig);
-		// then for each of them look up if we have a single form.
-		const arr_res = [];
-		each(s_sig, (sig_item, c) => {
-			const sing = plur_sing[sig_item] || sig_item;
-			arr_res.push(sing);
-		});
-		//console.trace();
-		//throw 'stop';
-		const res = arr_res.join(',');
-		return res;
-	}
-	// Add word / item
-	//  noun
-	//   and the noun has a definition.
-	//  An OO definition format may make the most sense logically and be easiest to debug.
-	//   Maybe not easiest to serialise and deserialise.
-
-	// Long form POJO grammar....
-	//  Easiest to send / serialise / save in this format.
-
-	// Defining nouns
-	//  nouns = objects basically
-	//   can be composed of other nouns
-	//    if so, that's its order.
-	// Verbs later.
-	//  They will be useful for providing more explanation of what functions do.
-	//   Maybe for indexing / categorising functions.
-}
-// More usage of 'grammar' within mfp?
-// Arguments modifiers, other new functionality now.
-// Detecting level 0 arrays
-//  and seeing what the internal type is?
-//   any shorthand for this?
-// getting level 0 sigs on the mfp function call makes a lot of sense.
-// Parsing a sig according to a grammar?
-//  Not sure about that yet, but it's worth considering.
-
-
-// More direct object normalisation would be useful.
-//  obj-norm module?
-
-// poly-convert - sensible and unused name.
 
 const mfp = function() {
 
@@ -4086,7 +3233,6 @@ let str_arr_mapify = function (fn) {
 					return fn.call(this, a[0]);
 				}
 			}
-
 			if (tof(a[0]) == 'array') {
 				let res2 = {},
 					that = this;
@@ -4103,7 +3249,7 @@ let str_arr_mapify = function (fn) {
 
 let to_arr_strip_keys = (obj) => {
 	let res = [];
-	each(obj, (v) => {
+	each(obj, v => {
 		res.push(v);
 	});
 	return res;
@@ -4113,7 +3259,6 @@ let to_arr_strip_keys = (obj) => {
 
 let arr_objs_to_arr_keys_values_table = (arr_objs) => {
 	let keys = Object.keys(arr_objs[0]);
-	
 	let arr_items = [],
 		arr_values;
 	each(arr_objs, (item) => {
@@ -4199,25 +3344,13 @@ let deep_arr_iterate = (arr, path = [], callback) => {
 
 // Can it easily keep the same context?
 let prom = (fn) => {
-
-
-
 	let fn_res = function () {
 		const a = arguments;
 		const t_a_last = typeof a[a.length - 1];
-
-		//console.log(this);
-		//throw 'stop';
-
 		if (t_a_last === 'function') {
 			fn.apply(this, a);
-
 		} else {
-
-			//console.log('a.length', a.length);
-
 			return new Promise((resolve, reject) => {
-
 				[].push.call(a, (err, res) => {
 					if (err) {
 						reject(err);
@@ -4233,10 +3366,839 @@ let prom = (fn) => {
 }
 
 
+
+
+const vectorify = n_fn => {
+	let fn_res = fp(function (a, sig) {
+		//console.log('vectorified sig ' + sig);
+		if (a.l > 2) {
+			throw 'stop - need to check.'
+			let res = a[0];
+			for (let c = 1, l = a.l; c < l; c++) {
+				res = fn_res(res, a[c]);
+				// console.log('res ' + res);
+			}
+			return res;
+		} else {
+			if (sig === '[n,n]') {
+				return n_fn(a[0], a[1]);
+			} else {
+				// will need go through the first array, and the 2nd... but
+				// will need to compare them.
+				const ats = atof(a);
+				//console.log('ats ' + stringify(ats));
+				if (ats[0] === 'array') {
+					if (ats[1] === 'number') {
+						const res = [], n = a[1], l = a[0].length
+						let c;
+						for (c = 0; c < l; c++) {
+							res.push(fn_res(a[0][c], n));
+						}
+						return res;
+					}
+					if (ats[1] === 'array') {
+						if (ats[0].length !== ats[1].length) {
+							throw 'vector array lengths mismatch';
+						} else {
+							const res = new Array(l), arr2 = a[1], l = a[0].length;
+							//let c;
+							for (let c = 0; c < l; c++) {
+								res[c] = fn_res(a[0][c], arr2[c]);
+							}
+							return res;
+						}
+					}
+				}
+			}
+		};
+
+	});
+	return fn_res;
+};
+
+// But this is an intelligent way of expressing functions here.
+
+const n_add = (n1, n2) => n1 + n2,
+	n_subtract = (n1, n2) => n1 - n2,
+	n_multiply = (n1, n2) => n1 * n2,
+	n_divide = (n1, n2) => n1 / n2;
+const v_add = vectorify(n_add),
+	v_subtract = vectorify(n_subtract),
+	v_multiply = vectorify(n_multiply),
+	v_divide = vectorify(n_divide);
+
+
+const vector_magnitude = function (vector) {
+	// may calculate magnitudes of larger dimension vectors too.
+	// alert(tof(vector[0]));
+	// alert(vector[0] ^ 2);
+
+	var res = Math.sqrt((Math.pow(vector[0], 2)) + (Math.pow(vector[1], 2)));
+	return res;
+
+};
+
+const distance_between_points = function (points) {
+	var offset = v_subtract(points[1], points[0]);
+	//console.log('offset ' + stringify(offset));
+	return vector_magnitude(offset);
+}
+
+
+
+// ui8c?
+//  ui8x???  for both?
+//  
+
+
+
+const map_tas_by_type = {
+	'c': Uint8ClampedArray,
+	'ui8': Uint8Array,
+	// ui8x?
+	'i16': Int16Array,
+	'i32': Int32Array,
+	'ui16': Uint16Array,
+	'ui32': Uint32Array,
+	'f32': Float32Array,
+	'f64': Float64Array
+}
+
+const get_typed_array = function() {
+	// Some simple and optimal poly. No mfp right now for perf reasons.
+	const a = arguments;
+	let length, input_array;
+
+	// [type, length]
+	// [type, input_array]
+	//  seems simple enough.
+	const type = a[0];
+	if (is_array(a[1])) {
+		input_array = a[1];
+	} else {
+		length = a[1];
+	}
+	
+	const ctr = map_tas_by_type[type];
+
+	if (ctr) {
+
+		if (input_array) {
+			return ctr(input_array);
+		} else if (length) {
+			return ctr(length);
+		}
+	}
+	//if (input_array) {
+	//	return nre
+	//}
+
+	/*
+
+	if (input_array) {
+
+	} else {
+
+	}
+	*/
+
+}
+
+
 // some change to get_item_sig?
 //  seems like that needs to have examples and tests too.
 
 // Or should use get_a_sig?
+
+
+// mfp currently needs to derive specific / explicit sigs from a sig which could have the *+? modifiers.
+//  getting grammat to deal with such modifiers too?
+
+class Grammar {
+	constructor(spec) {
+		const eg_spec = {
+			name: 'User Auth Grammar'
+		}
+		const {name} = spec;
+		this.name = name;
+
+		// then the objects in a map...?
+		// Grammar itself can have a name.
+		// various maps / indexes?
+		// map of definitions by name
+		// map of names by abbreviation
+		// map of names by signatures?
+		//  could be overlap
+		// Each named item definitely within an index.
+		// Item signatures, compound item signatures...
+		//  Different signatures for different ways of arranging an object.
+		// Signature in object form
+		//  ie username and password.
+
+		// depth 1 sig seems like it may be very useful here.
+
+		// Check arguments against the grammar.
+		//  See if all of the arguments together are a specified object.
+		//   Items grouped as arrays?
+
+		// A single grammar object....
+		//  OO grammar seems like the best way for the moment.
+		//   can use it within functional programming.
+
+		// Whole bunch of different mappings...
+
+		// Singular
+		// Plural
+		// single word defs???
+		// single word sigs?
+		//  composed out of their components?
+
+		// Be able to get the sigs from the definitions.
+		//  Then can check against those sigs.
+
+
+		const eg_indexing = () => {
+			let map_sing_plur = {};
+			let map_plur_sing = {};
+
+			let map_sing_def = {};
+			let map_sig_sing = {};
+			//   map from the signature to the singular word.
+			//   maps of signatures at different levels.
+
+			// Compound objects...
+			//  
+			// Could assign more than one sig whan an object can be expressed in more than one way.
+
+			let map_sig0_sing = {};
+			let map_sig1_sing = {};
+			let map_sig2_sing = {};
+		}
+		// maps all in one object?
+		//  may be more convenient.
+		// and from sing to signatures (at different levels).
+
+		this.maps = {
+			sing_plur: {},
+			plur_sing: {},
+			sing_def: {},
+
+			// Deep sig as well.
+			//  some deep sigs would be too big though.
+			//   and want to create to object deep sigs too?
+
+
+			// but there could be multiple matching deep sigs.
+			//  need to put an array in place.
+			deep_sig_sing: {},
+			obj_sig_sing: {},
+
+			//sig_sing: {},
+			// different levels of signatures.
+			//  in its own map?
+
+			// sig levels definitely seems like the right way to identify what it is (in many cases).
+
+			sig_levels_sing: {}
+		}
+		this.load_grammar(spec.def);
+		// Getting the signatures at different levels would be very useful.
+	}
+
+	load_grammar(grammar_def) {
+		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+
+		//console.log('load_grammar');
+
+		// function to resolve a definition:
+		//  need to get the types down to the native types
+		//   string, number, boolean
+		//   arrangements of object and array.
+		//  native types, or including other types built in such as 'integer'?
+		//   not now.
+
+		// or the types that have got definitions?
+
+		const resolve_def = (def) => {
+			// This being about resolving the types to native?
+			// can be resolved down to array and object?
+			// this will be about looking up the references.
+			const td = tf(def);
+			if (td === 'a') {
+
+				//console.log('');
+				//console.log('need to resolve an array def');
+				//console.log('');
+				const res = [];
+				each(def, def_item => {
+					//console.log('def_item', def_item);
+					res.push(resolve_def(def_item));
+				});
+				return res;
+			} else if (td === 's') {
+				// see what it actually is.
+				//  can look it up against native types.
+				//  or configured types?
+				if (def === 'string') {
+					// resolved to this
+					return 'string';
+				} else if (def === 'number') {
+					// resolved to this
+					return 'number';
+				} else if (def === 'boolean') {
+					// resolved to this
+					return 'boolean';
+				} else {
+					// attempt resolution?
+					//return 
+					// look it up, get a new def...
+					//console.log('about to look up (resolve) def', def);
+					// look up this def name (both sing and plur?), see what it's made from.
+					const found_sing_def = sing_def[def];
+					//console.log('found_sing_def', found_sing_def);
+					return found_sing_def;
+				}
+				/* else if (def === 'string') {
+					// resolved to this
+					return 'string';
+				} else if (def === 'string') {
+					// resolved to this
+					return 'string';
+				} */
+			} else if (td === 'n') {
+				console.trace();
+				throw 'NYI';
+			} else if (td === 'b') {
+				console.trace();
+				throw 'NYI';
+			}
+		}
+
+		//  And will / can resolved defs have internal arrays?
+		//   Not sure about this right now.
+		//   Need to make sure that it deals with the defs we are dealing with right now.
+
+		// Deep sig.
+
+		const resolved_def_to_sig = (resolved_def, level = 0) => {
+			const trd = tf(resolved_def);
+			//console.log('trd', trd);
+			if (trd === 's') {
+				if (resolved_def === 'string') {
+					return 's'
+				} else if (resolved_def === 'number') {
+					return 'n'
+				} else if (resolved_def === 'boolean') {
+					return 'b'
+				} /* else if (resolved_def === 'string') {
+					return 's'
+				} */
+			} else if (trd === 'a') {
+				// Probably best not to enclose in [] on level 0.
+				//  Don't necessarily want to say they are all in an array. That's a likely way they will be enclosed, don't want to assume its the case or force it.
+
+				// not so sure...
+				//  not sure about the outer level of it having [].
+				// The top level for array not having []?
+				//  keep track of the level we are at?
+
+				let res = '';
+				//res = res + '[';
+				if (level === 0) {
+
+				} else {
+					res = res + '[';
+				}
+				// then add the resolved sig for each item in the array
+				each(resolved_def, (item, c) => {
+					if (c > 0) {
+						res = res + ',';
+					}
+					res = res + resolved_def_to_sig(item, level + 1);
+				});
+				if (level === 0) {
+
+				} else {
+					res = res + ']';
+				}
+				//res = res + ']';
+				return res;
+			} else {
+				console.trace();
+				throw 'NYI';
+			}
+			return res;
+		}
+		// Could load into the various maps here.
+		each(grammar_def, (def1, sing_word) => {
+			//console.log('');
+			//console.log('sing_word', sing_word);
+			//console.log('def1', def1);
+
+			// def and plural.
+			//  plural just as a string I suppose.
+			const {def, plural} = def1;
+			//console.log('def', def);
+			//console.log('plural', plural);
+			// And work out the signatures based on what they are composed of.
+			//  Will later use this to enable easier calling of functions.
+			//  Will have a more complete model of what the function does by using grammars.
+			// Will have a variety of functions...
+			// Check object / arguments against a grammar.
+			// Get the signature of the object / arguments, making use of the types defined in the grammar.
+			//  Then incorporate it into the mfp function
+
+			// Deep sigs could be very useful.
+
+			/*
+			const obj_word_def = {
+				single: {
+					word: sing_word,
+					def: def
+				},
+				plural: {
+					word: plural
+				}
+			}
+			*/
+			//console.log('obj_word_def', obj_word_def);
+			// map of defs by sing word
+			//  sing_def
+			sing_def[sing_word] = def;
+			sing_plur[sing_word] = plural;
+			plur_sing[plural] = sing_word;
+			// see if we can get signatures from the def?
+			//  or direct checks of objects against defs?
+			// Then various different signatures?
+			//  Depends on the def.
+			// some polymorphic processing on the def...?
+			
+			const tdef = tf(def);
+			//console.log('tdef', tdef);
+			// instead use the def resolution function.
+			const resolved_def = resolve_def(def);
+			//console.log('resolved_def', resolved_def);
+			const resolved_def_sig = resolved_def_to_sig(resolved_def);
+			// Probably not worth encosing depth 0 array items.
+			//  not sure.
+			//console.log('resolved_def_sig', resolved_def_sig);
+			// and finding the deep sigs in a different format - 
+			//  creating the object type definitions, eg {username: 'j', password: 'p'}
+			//   shorthands, aliases and abbreviations could be of use too.
+			deep_sig_sing[resolved_def_sig] = deep_sig_sing[resolved_def_sig] || [];
+			deep_sig_sing[resolved_def_sig].push(sing_word);
+			// definitely want to create the object definition too...
+			//  only when there are multiple params?
+			// or can send around named param objects too..
+			//  as in name and value pairs.
+			//   dealing with object kvps could be useful at times. being able to specify the property name inside the object itself.
+			//   don't always want to rely on the js references.
+
+			// object sigs being more distinctive?
+			//  only with named properties?
+			//   ie where we get the name from the custom type?
+
+			// definitely want object and array parameters to be interchangable.
+			// if it's made out of custom types?
+			//  or named string properties.
+
+			// is def entirely composed out of custom types (that have been defined?)
+			//  we can use them as named parameters.
+
+			let def_is_all_custom_types = true;
+			each(def, (def_item, c, stop) => {
+				// where each item is a string...
+				const tdi = tf(def_item);
+				if (tdi === 's') {
+					if (sing_def[def_item]) {
+					} else {
+						def_is_all_custom_types = false;
+						stop();
+					}
+				} else {
+					def_is_all_custom_types = false;
+					stop();
+				}
+			});
+			//console.log('def_is_all_custom_types', def_is_all_custom_types);
+			// then if it's all custom, types, we can create the object sig.
+			// may need to differentiate more between different sig types.
+			//  how deep
+			//  if they make use of any grammars with their own definitions.
+			// being able to spot the function params being given as an object rather than array will be very useful.
+			//  creating an object out of the definitions.
+			let obj_sig;
+			if (def_is_all_custom_types) {
+				// create that definition...
+				// resolve each of the types down to native types.
+				obj_sig = '{';
+				each(def, (def_item, c, stop) => {
+					// we know they are all strings.
+					if (c > 0) {
+						obj_sig = obj_sig + ',';
+					}
+					// resolve each.
+					const resolved = resolve_def(def_item);
+					//console.log('def_item', def_item);
+					//console.log('resolved', resolved);
+					// and want the abbreviated resolved version.
+					const abr_resolved = resolved_def_to_sig(resolved);
+					//console.log('abr_resolved', abr_resolved);
+					obj_sig = obj_sig + '"' + def_item + '":'
+					obj_sig = obj_sig + abr_resolved;
+				});
+				obj_sig = obj_sig + '}';
+			}
+			//const egds = deep_sig({username: 'james', password:'pwd'});
+			//console.log('egds', egds);
+			//console.log('obj_sig', obj_sig);
+			if (obj_sig) {
+				obj_sig_sing[obj_sig] = obj_sig_sing[obj_sig] || [];
+				obj_sig_sing[obj_sig].push(sing_word);
+			}
+			//console.log('this.maps', this.maps);
+		})
+	}
+	// Maybe not exactly a sig.
+	//  would more more like a type?
+	//  extended / unabbreviated sig?
+	// previously called 'sig' - but this gets the type name rather than the signature (which is abbreviated and can contain multiple items).
+	tof(item) {
+		// Could return a normal type if we don't find a type within the grammar.
+		// Check if it's an arguments object?
+		// Treat that as an array?
+		// eg [s,s] becomes user_login or user_credentials if that's defined.
+		//  the object could have multiple possible sigs.
+		//   return an array in that case?
+		// get the deep sig of the object (normal deep sig)
+		// then check that deep sig against the maps.
+		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		// show it as an array in the deep sig?
+		//  not just commas?
+		//   maybe commas make the most sense when it's in an arguments object.
+		// Check to see if it's a plural type, given as an array?
+		//  Check if it's a plurality of known single types.
+		//  If so, we know the type as such a plural type.
+		//   Some functions would be defined with specific ways of handling some arguments / params given as plurals.
+		const titem = tf(item);
+		// And arguments object?
+		console.log('titem', titem);
+		if (titem === 'a') {
+			let all_arr_items_type;
+			// Or the sig of the sub items?
+			//  Probably want to check if they are types that are (unambiguously?) defined within this grammar.
+			// First check to see if all the items in the array are of a defined type.
+			//  as in, look at the deep sig of each item in the array.
+			//  are they all the same?
+			each(item, (subitem, c, stop) => {
+				//console.log('subitem', subitem);
+				const subitem_type = this.tof(subitem);
+				console.log('subitem_type', subitem_type);
+				if (c === 0) {
+					all_arr_items_type = subitem_type;
+				} else {
+					if (all_arr_items_type === subitem_type) {
+
+					} else {
+						all_arr_items_type = null;
+						stop();
+					}
+				}
+			});
+			// not found it as a compound / plural type...?
+			if (all_arr_items_type) {
+				// we have a plural type, given as an array.
+				//  plural types always given as an array or iterable?
+				console.log('has all_arr_items_type', all_arr_items_type);
+				// and if they are custom types.
+				//  not just 'string' etc.
+				if (!map_native_types[all_arr_items_type]) {
+					const res = sing_plur[all_arr_items_type];
+					return res;
+				}
+			} else {
+				console.log('no all_arr_items_type');
+				// Need to go through the items I think.
+			}
+			// Will check object types too?
+		} else {
+			// if it's just a string?
+			//  the grammar could have a way to differentiate strings.
+			//   could differentiate other numbers too.
+			//   maybe with a decision tree.
+			return tof(item);
+			/*
+			console.log('item', item);
+			console.log('titem', titem);
+			console.trace();
+			throw 'NYI';
+			*/
+		}
+		// And now deep sig is enclosing arrays.
+		//  Makes sense when we actually have an array.
+		//  When its two items in a row in a definition, don't want to assume it's an array.
+		const item_deep_sig = deep_sig(item);
+		// stripped deep sig...?
+		console.log('Grammar tof() item_deep_sig', item_deep_sig);
+		let arr_sing;
+		if (titem === 'a') {
+			// make an unenclosed sig as well.
+			// lookup that / both against the definitions.
+			// unenclosed sigs....
+			const unenclosed_sig = item_deep_sig.substring(1, item_deep_sig.length - 1);
+			console.log('unenclosed_sig', unenclosed_sig);
+			// then lookup the unenclosed sig.
+			//  items likely wont be represented enclosed as an array.
+			arr_sing = deep_sig_sing[unenclosed_sig];
+		} else {
+			arr_sing = deep_sig_sing[item_deep_sig];
+		}
+		// And have deep sigs where they are wrapped as arrays too?
+		// Could strip out the array markers ([, ]) ?
+		//  Want to be able to recognise the parameters when they are given as an array
+		//  As well as within an arguments object (representing the separate arguments)
+		//console.log('arr_sing', arr_sing);
+		if (arr_sing) {
+			if (arr_sing.length === 1) {
+				return arr_sing[0];
+			} else {
+				console.trace();
+				throw 'NYI';
+			}
+		}
+		// look up that deep sig.
+	}
+
+	// Do need to get a signature out of arguments, arrays, objects.
+	sig(item, max_depth = -1, depth = 0) {
+
+		// what is this...?
+		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		// Extended signatures.
+		//  native types abbreviated
+		//  custom / grammar defined types not abbreviated. Clearer and less ambiguous that way.
+		//   maybe they will get abbreviations within the context of a grammar.
+		// Extended sig because it contains items which are not (always) abbreviated.
+
+		// Possibly need to test this outside of the current system.
+		//  Need to see why this signature is not working now.
+
+		const extended_sig = item => {
+			// go through it.
+			//  native types / types below the grammar get abbreviated.
+			//  non-native types don't have abbreviations (for the moment) or get abbreviated.
+			// arguments object
+			// array
+			// object???
+			const ti = tf(item);
+			//console.log('getting grammar extended_sig of item', item);
+
+			// use this tof on the item?
+			//  will that detect 'arguments'? 
+			//  improve general tof for this?
+			// or tf?
+			//  where it can also return unabbreviated type names?
+			//console.log('Grammar sig extended_sig ti', ti);
+			let res = '';
+			let same_grammar_type;
+
+			const record_subitem_sigs = item => {
+				same_grammar_type = undefined;
+				let same_sig = undefined;
+
+				// Not sure why some misrecognition is going on.
+				//  
+
+				// This same grammar type is not properly working now.
+				//  Misreads them and makes plurals where they shouldnt be.
+
+				each(item, (subitem, c) => {
+					//console.log('subitem', subitem);
+					if (c > 0) {
+						res = res + ',';
+					}
+					// check if it's not a native type...?
+					//console.log('subitem', subitem);
+					const sig_subitem = this.sig(subitem, max_depth, depth + 1);
+					// see if it's in the map of 'sing' in the grammar.
+					//console.log('sing_def[sig_subitem]', sing_def[sig_subitem]);
+
+					// no... need to check that the sig_subitem values are all the same.
+
+					if (same_sig === undefined) {
+						same_sig = sig_subitem;
+					} else {
+						if (sig_subitem !== same_sig) {
+							same_sig = false;
+							same_grammar_type = false;
+						}
+					}
+
+					if (same_sig) {
+						if (sing_def[sig_subitem]) {
+							//console.log('sing_def[sig_subitem]', sing_def[sig_subitem]);
+							// so two arrays together...?
+							//  need to be arrays with the right type inside though.
+							// We have got an item defined within the grammar.
+							//console.log('same_grammar_type === undefined', same_grammar_type === undefined);
+							//console.log('1) same_grammar_type', same_grammar_type);
+							if (same_grammar_type === undefined) {
+								same_grammar_type = sig_subitem;
+							} else {
+								if (same_grammar_type === sig_subitem) {
+	
+								} else {
+									same_grammar_type = false;
+								}
+							}
+						} else {
+	
+						}
+					}
+
+					//console.log('sig_subitem', sig_subitem);
+
+					res = res + sig_subitem;
+				});
+				//console.log('2) same_grammar_type', same_grammar_type);
+				//console.log('same_sig', same_sig);
+
+				//console.trace();
+				//console.log('res', res);
+			}
+
+			if (ti === 'A') {
+				record_subitem_sigs(item);
+				return res;
+			} else if (ti === 'a') {
+				//res = res + '[';
+				record_subitem_sigs(item);
+				if (same_grammar_type) {
+
+					//console.log('same_grammar_type', same_grammar_type);
+					//console.trace();
+
+					const plur_name = sing_plur[same_grammar_type];
+					return plur_name;
+				} else {
+					//console.log('res', res);
+
+					// Seems like a problem in this part....
+					//  Possibly should do some more lower level tests.
+
+
+					const found_obj_type = obj_sig_sing[res];
+					//console.log('found_obj_type', found_obj_type);
+					//console.log('Object.keys(obj_sig_sing)', Object.keys(obj_sig_sing));
+
+					const found_deep_sig_type = deep_sig_sing[res];
+
+
+					//console.log('found_deep_sig_type', found_deep_sig_type);
+					//console.log('Object.keys(deep_sig_sing)', Object.keys(deep_sig_sing));
+					let found_type_sing;
+
+
+					if (found_deep_sig_type) {
+
+
+						if (found_deep_sig_type.length === 1) {
+							// unambiguous.
+							found_type_sing = found_deep_sig_type[0];
+						}
+					}
+					if (found_type_sing) {
+						return found_type_sing;
+					} else {
+						const enclosed_res = '[' + res + ']';
+						//console.log('pre return grammar sig enclosed_res', enclosed_res);
+						return enclosed_res;
+					}
+				}
+			} else if (ti === 'o') {
+
+				if (max_depth === -1 || depth <= max_depth) {
+					res = res + '{';
+					let first = true;
+					each(item, (value, key) => {
+						const vsig = this.sig(value, max_depth, depth + 1);
+						//console.log('vsig', vsig);
+						if (!first) {
+							res = res + ',';
+						} else {
+							first = false;
+						}
+						res = res + '"' + key + '":' + vsig;
+					});
+					res = res + '}';
+					return res;
+				} else {
+					return 'o';
+				}
+				// object
+				// go through the keys and the values
+			} else if (ti === 's' || ti === 'n' || ti === 'b') {
+				return ti;
+			} else {
+				return ti;
+			}
+		}
+		return extended_sig(item);
+	}
+
+	// single_forms_sig
+	//  get the sig back, but every plural form is singularised.
+
+	// annotate this as being a conversion function? with the verb being 'convert'?
+	single_forms_sig(item) {
+		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		let sig = this.sig(item);
+		let s_sig = sig.split(',');
+		//console.log('Grammar single_forms_sig s_sig', s_sig);
+		// then for each of them look up if we have a single form.
+		const arr_res = [];
+		each(s_sig, (sig_item, c) => {
+			const sing = plur_sing[sig_item] || sig_item;
+			arr_res.push(sing);
+		});
+		//console.trace();
+		//throw 'stop';
+		const res = arr_res.join(',');
+		return res;
+	}
+	// Add word / item
+	//  noun
+	//   and the noun has a definition.
+	//  An OO definition format may make the most sense logically and be easiest to debug.
+	//   Maybe not easiest to serialise and deserialise.
+
+	// Long form POJO grammar....
+	//  Easiest to send / serialise / save in this format.
+
+	// Defining nouns
+	//  nouns = objects basically
+	//   can be composed of other nouns
+	//    if so, that's its order.
+	// Verbs later.
+	//  They will be useful for providing more explanation of what functions do.
+	//   Maybe for indexing / categorising functions.
+}
+// More usage of 'grammar' within mfp?
+// Arguments modifiers, other new functionality now.
+// Detecting level 0 arrays
+//  and seeing what the internal type is?
+//   any shorthand for this?
+// getting level 0 sigs on the mfp function call makes a lot of sense.
+// Parsing a sig according to a grammar?
+//  Not sure about that yet, but it's worth considering.
+
+
+// More direct object normalisation would be useful.
+//  obj-norm module?
+
+// poly-convert - sensible and unused name.
+
+// Could an Eventify function work well and be used by Evented_Class?
 
 class Evented_Class {
 	'constructor'() {
@@ -4620,153 +4582,74 @@ p.off = p.remove_event_listener;
 // Somewhat inefficient?
 //  Not so sure that this type of functional programming is efficient to use on vectors.
 
+// An eventify function would be very useful.
+//  Not so sure about having Evented_Class use it, for efficiency reasons.
+//  But could I use the .prototype system to make it effectively?
+//  Code is rather performance critical, don't want to modify the current evented_class.
+
+const eventify = obj => {
+
+	const bound_events = {};
+
+	const add_event_listener = (name, handler) => {
+		if (handler === undefined && typeof name === 'function') {
+			handler = name;
+			name = '';
+		}
+
+		if (!bound_events[name]) bound_events[name] = [];
+		bound_events[name].push(handler);
+		
+	}
+
+	const remove_event_listener = (name, handler) => {
+		if (bound_events[name]) {
+			const i = bound_events[name].indexOf(handler);
+			if (i > -1) {
+				bound_events[name].splice(i, 1);
+			} 
+		}
+		// 
+	}
+
+	const raise_event = (name, optional_param) => {
+		// raise it on each of the event handlers.
+		const arr_named_events = bound_events[name];
 
 
-var vectorify = n_fn => {
-	let fn_res = fp(function (a, sig) {
-		//console.log('vectorified sig ' + sig);
-		if (a.l > 2) {
-			const res = a[0];
-			for (let c = 1, l = a.l; c < l; c++) {
-				res = fn_res(res, a[c]);
-				// console.log('res ' + res);
-			}
-			return res;
-		} else {
-			if (sig === '[n,n]') {
-				return n_fn(a[0], a[1]);
+		if (arr_named_events !== undefined) {
+
+
+			if (optional_param !== undefined) {
+				const l = arr_named_events.length;
+				for (let c = 0; c < l; c++) {
+					// single optional param shoulnt be in an array for call.
+
+					arr_named_events[c].call(obj, optional_param);
+				}
 			} else {
-				// will need go through the first array, and the 2nd... but
-				// will need to compare them.
-				const ats = atof(a);
-				//console.log('ats ' + stringify(ats));
-				if (ats[0] === 'array') {
-					if (ats[1] === 'number') {
-						const res = [], n = a[1], l = a[0].length
-						let c;
-						for (c = 0; c < l; c++) {
-							res.push(fn_res(a[0][c], n));
-						}
-						return res;
-					}
-					if (ats[1] === 'array') {
-						if (ats[0].length !== ats[1].length) {
-							throw 'vector array lengths mismatch';
-						} else {
-							const res = new Array(l), arr2 = a[1], l = a[0].length;
-							//let c;
-							for (let c = 0; c < l; c++) {
-								res[c] = fn_res(a[0][c], arr2[c]);
-							}
-							return res;
-						}
-					}
+				const l = arr_named_events.length;
+				for (let c = 0; c < l; c++) {
+					arr_named_events[c].call(obj);
 				}
 			}
-		};
-
-	});
-	return fn_res;
-};
-
-// But this is an intelligent way of expressing functions here.
-
-const n_add = (n1, n2) => n1 + n2,
-	n_subtract = (n1, n2) => n1 - n2,
-	n_multiply = (n1, n2) => n1 * n2,
-	n_divide = (n1, n2) => n1 / n2;
-const v_add = vectorify(n_add),
-	v_subtract = vectorify(n_subtract),
-	v_multiply = vectorify(n_multiply),
-	v_divide = vectorify(n_divide);
-
-
-const vector_magnitude = function (vector) {
-	// may calculate magnitudes of larger dimension vectors too.
-	// alert(tof(vector[0]));
-	// alert(vector[0] ^ 2);
-
-	var res = Math.sqrt((Math.pow(vector[0], 2)) + (Math.pow(vector[1], 2)));
-	return res;
-
-};
-
-const distance_between_points = function (points) {
-	var offset = v_subtract(points[1], points[0]);
-	//console.log('offset ' + stringify(offset));
-	return vector_magnitude(offset);
-}
-
-
-
-// ui8c?
-//  ui8x???  for both?
-//  
-
-
-
-const map_tas_by_type = {
-	'c': Uint8ClampedArray,
-	'ui8': Uint8Array,
-	// ui8x?
-	'i16': Int16Array,
-	'i32': Int32Array,
-	'ui16': Uint16Array,
-	'ui32': Uint32Array,
-	'f32': Float32Array,
-	'f64': Float64Array
-}
-
-const get_typed_array = function() {
-	// Some simple and optimal poly. No mfp right now for perf reasons.
-	const a = arguments;
-	let length, input_array;
-
-	// [type, length]
-	// [type, input_array]
-	//  seems simple enough.
-	const type = a[0];
-	if (is_array(a[1])) {
-		input_array = a[1];
-	} else {
-		length = a[1];
-	}
-	
-	const ctr = map_tas_by_type[type];
-
-	if (ctr) {
-
-		if (input_array) {
-			return ctr(input_array);
-		} else if (length) {
-			return ctr(length);
+			
 		}
 	}
 
+	obj.on = obj.add_event_listener = add_event_listener;
+	obj.off = obj.remove_event_listener = remove_event_listener;
+	obj.raise = obj.raise_event = raise_event;
 
-	//if (input_array) {
-	//	return nre
-	//}
-
-
-
-	/*
-
-	if (input_array) {
-
-	} else {
-
-	}
-	*/
-
-
+	return obj;
 }
+
 
 
 // Nice if this had some vector manipulation functions.
 // lang-plus
 
-let lang_mini = {
+const lang_mini = {
 	'each': each,
 	'is_array': is_array,
 	'is_dom_node': is_dom_node,
@@ -4805,8 +4688,8 @@ let lang_mini = {
 	'arrayify': arrayify,
 	'mapify': mapify,
 	'str_arr_mapify': str_arr_mapify,
-	'are_equal': are_equal,
-	'deep_equal': are_equal,
+	//'are_equal': are_equal,
+	//'deep_equal': are_equal,
 	'get_a_sig': get_a_sig,
 	'deep_sig': deep_sig,
 	'get_item_sig': get_item_sig,
@@ -4839,7 +4722,7 @@ let lang_mini = {
 	'combos': combinations,
 
 	'Evented_Class': Evented_Class,
-
+	'eventify': eventify,
 	'vectorify': vectorify,
 	'v_add': v_add,
 	'v_subtract': v_subtract,

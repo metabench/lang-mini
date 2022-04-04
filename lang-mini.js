@@ -4,6 +4,9 @@ const running_in_browser = typeof window !== 'undefined';
 const running_in_node = !running_in_browser;
 
 let Readable_Stream, Writable_Stream, Transform_Stream;
+
+
+// get_stream_if_in_node? // get_node_only_stream ? // node_only_get_stream?
 const get_stream = () => {
 	if (running_in_node) {
 		return (() => {
@@ -13,7 +16,7 @@ const get_stream = () => {
 			Transform_Stream = stream.Transform;  // T
 			return stream;
 		})();
-		
+
 	} else {
 		//return {
 		//	type: 'Undefined Object Proxy',
@@ -492,7 +495,7 @@ const tf = (obj) => {
 		}
 	}
 
-	if (res === 'number' || res === 'string' || res === 'function' || res === 'boolean'|| res === 'undefined') {
+	if (res === 'number' || res === 'string' || res === 'function' || res === 'boolean' || res === 'undefined') {
 		return res[0];
 	} else {
 		// object?
@@ -502,35 +505,35 @@ const tf = (obj) => {
 		if (obj === null) {
 			return 'N';
 		} else {
-		// remove?
-		/*
-		if (is_ctrl(obj)) {
-			//return res;
-			return 'control';
-		}
-		*/
-		// Buffer as well.
-		// Duck typing could be better?
-		//  or we have browser polyfill anyway???
-		// readable stream, writable stream, if in node.
-		// Transform_Stream
-		// capitals?
-
-		if (running_in_node) {
-			if (obj instanceof Readable_Stream) {
-				return 'R';
-			} else if (obj instanceof Writable_Stream) {
-				return 'W';
-			} else if (obj instanceof Transform_Stream) {
-				return 'T';
+			// remove?
+			/*
+			if (is_ctrl(obj)) {
+				//return res;
+				return 'control';
 			}
-		}
+			*/
+			// Buffer as well.
+			// Duck typing could be better?
+			//  or we have browser polyfill anyway???
+			// readable stream, writable stream, if in node.
+			// Transform_Stream
+			// capitals?
 
-		if (obj instanceof Buffer) {
-			return 'B';
-		} else if (obj instanceof Promise) {
-			return 'p';
-		} else if (obj instanceof Date) {
+			if (running_in_node) {
+				if (obj instanceof Readable_Stream) {
+					return 'R';
+				} else if (obj instanceof Writable_Stream) {
+					return 'W';
+				} else if (obj instanceof Transform_Stream) {
+					return 'T';
+				}
+			}
+
+			if (obj instanceof Buffer) {
+				return 'B';
+			} else if (obj instanceof Promise) {
+				return 'p';
+			} else if (obj instanceof Date) {
 				return 'd';
 			} else if (is_array(obj)) {
 				//res = 'array';
@@ -624,10 +627,10 @@ const atof = (arr) => {
 };
 
 const is_defined = (value) => {
-		// tof or typeof
+	// tof or typeof
 
-		return typeof (value) != 'undefined';
-	},
+	return typeof (value) != 'undefined';
+},
 	isdef = is_defined;
 
 // will test for control using similar means as well.
@@ -1083,7 +1086,7 @@ const deep_sig = (item, max_depth = -1, depth = 0) => {
 		} else {
 			return 'o';
 		}
-		
+
 		//console.trace();
 		//throw 'NYI';
 	} else {
@@ -1241,7 +1244,7 @@ const parse_sig = (str_sig, opts = {}) => {
 	//  will move to deep_sig standard in places.
 	//   
 	// item length 1 - its using an abbreviation.
-	
+
 	const res = [];
 	each(sig_items, sig_item => {
 		if (sig_item.length === 1) {
@@ -1520,7 +1523,7 @@ const map_grammar_def_abbreviations = {
 //   Provide the internal log object.
 //    Easily allow that to be directed to the console.
 
-const log = () => {};
+const log = () => { };
 
 
 // mfp will have function calling helper systems.
@@ -1644,7 +1647,7 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 	//  Could have a callback???
 
 
-	
+
 	const result_from_indexes = (arr, arg_indexes) => {
 		// two need to be the same length?
 
@@ -1751,7 +1754,7 @@ const map_native_type_sigs = {
 //  + means 1 or more, so can be plural.
 //    possibly will recieve the plural items through an observable (or other?) async result object.
 
-const mfp = function() {
+const mfp = function () {
 
 	// Function call argument conversion.
 	//   May change to general object conversion.
@@ -1798,7 +1801,7 @@ const mfp = function() {
 	//console.log('options', options);
 	//console.log('Object.keys(options)', Object.keys(options));
 	// Maybe a .async property isnt such a good idea.
-	let {single, name, grammar, verb, noun, return_type, return_subtype, pure, main, skip} = options;
+	let { single, name, grammar, verb, noun, return_type, return_subtype, pure, main, skip } = options;
 
 	//console.log('name', name);
 	//console.trace();
@@ -1826,8 +1829,16 @@ const mfp = function() {
 		// parse / initialise the grammar....
 		// Not so sure how we will use grammar here. Grammar functionality is likely to be generalised on a lower level than mfp.
 		//  Typed POJO identification and matching is what I'm looking for now.
-		if (grammar) dsig = x => grammar.sig(x);
+
+
+		// ???
+
+		//if (grammar) dsig = x => (grammar.sig) ? grammar.sig(x) : undefined;
+
+
 		//console.log('provided_map_sig_fns', provided_map_sig_fns);
+
+
 
 		if (provided_map_sig_fns) {
 
@@ -1969,14 +1980,14 @@ const mfp = function() {
 				};
 			});
 		}
-		
+
 		each(inner_map_sig_fns, (fn, sig) => {
 			tm_sig_fns = tm_sig_fns || {};
 			tm_sig_fns[sig] = true;
 		});
 	})();
-	
-	const res = function() {
+
+	const res = function () {
 		const a2 = arguments;
 		const l2 = a2.length;
 		console.log('');
@@ -2005,7 +2016,7 @@ const mfp = function() {
 
 
 		// 
-		
+
 		//console.log('* mfp_fn_call_deep_sig', mfp_fn_call_deep_sig);
 		//console.log('arguments', arguments);
 		//console.trace();
@@ -2548,7 +2559,7 @@ let clone = fp((a, sig) => {
 		}
 
 
-		
+
 
 	} else if (a.l === 2 && tof(a[1]) === 'number') {
 		let res = [];
@@ -2568,6 +2579,13 @@ let set_vals = function (obj, map) {
 	});
 };
 
+/**
+ * @function ll_set
+ * Low level set
+ * @param {object} obj - The object to retrieve the value from
+ * @param {string} prop_name - Name or path of the value
+ * @param {object} prop_value - The new value
+ */
 
 let ll_set = (obj, prop_name, prop_value) => {
 	// not setting sub-properties specifically. sub-properties are
@@ -2605,6 +2623,13 @@ let ll_set = (obj, prop_name, prop_value) => {
 };
 
 
+/**
+ * @function ll_get
+ * Low level get
+ * @param {object} object - The object to retrieve the value from
+ * @param {string} path - Name or path of the value
+ */
+
 let ll_get = (a0, a1) => {
 
 	if (a0 && a1) {
@@ -2623,7 +2648,6 @@ let ll_get = (a0, a1) => {
 		} else {
 
 			//return ll_get_inner(a0, a1);
-
 
 			let arr = a1.split('.');
 
@@ -3464,7 +3488,7 @@ const map_tas_by_type = {
 	'f64': Float64Array
 }
 
-const get_typed_array = function() {
+const get_typed_array = function () {
 	// Some simple and optimal poly. No mfp right now for perf reasons.
 	const a = arguments;
 	let length, input_array;
@@ -3478,7 +3502,7 @@ const get_typed_array = function() {
 	} else {
 		length = a[1];
 	}
-	
+
 	const ctr = map_tas_by_type[type];
 
 	if (ctr) {
@@ -3514,12 +3538,14 @@ const get_typed_array = function() {
 // mfp currently needs to derive specific / explicit sigs from a sig which could have the *+? modifiers.
 //  getting grammat to deal with such modifiers too?
 
+// Maybe put in other module if not used soon?
+
 class Grammar {
 	constructor(spec) {
 		const eg_spec = {
 			name: 'User Auth Grammar'
 		}
-		const {name} = spec;
+		const { name } = spec;
 		this.name = name;
 
 		// then the objects in a map...?
@@ -3606,7 +3632,7 @@ class Grammar {
 	}
 
 	load_grammar(grammar_def) {
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		const { sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing } = this.maps;
 
 		//console.log('load_grammar');
 
@@ -3737,7 +3763,7 @@ class Grammar {
 
 			// def and plural.
 			//  plural just as a string I suppose.
-			const {def, plural} = def1;
+			const { def, plural } = def1;
 			//console.log('def', def);
 			//console.log('plural', plural);
 			// And work out the signatures based on what they are composed of.
@@ -3772,7 +3798,7 @@ class Grammar {
 			// Then various different signatures?
 			//  Depends on the def.
 			// some polymorphic processing on the def...?
-			
+
 			const tdef = tf(def);
 			//console.log('tdef', tdef);
 			// instead use the def resolution function.
@@ -3872,7 +3898,7 @@ class Grammar {
 		//   return an array in that case?
 		// get the deep sig of the object (normal deep sig)
 		// then check that deep sig against the maps.
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		const { sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing } = this.maps;
 		// show it as an array in the deep sig?
 		//  not just commas?
 		//   maybe commas make the most sense when it's in an arguments object.
@@ -3973,7 +3999,7 @@ class Grammar {
 	sig(item, max_depth = -1, depth = 0) {
 
 		// what is this...?
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		const { sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing } = this.maps;
 		// Extended signatures.
 		//  native types abbreviated
 		//  custom / grammar defined types not abbreviated. Clearer and less ambiguous that way.
@@ -4046,13 +4072,13 @@ class Grammar {
 								same_grammar_type = sig_subitem;
 							} else {
 								if (same_grammar_type === sig_subitem) {
-	
+
 								} else {
 									same_grammar_type = false;
 								}
 							}
 						} else {
-	
+
 						}
 					}
 
@@ -4151,7 +4177,7 @@ class Grammar {
 
 	// annotate this as being a conversion function? with the verb being 'convert'?
 	single_forms_sig(item) {
-		const {sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing} = this.maps;
+		const { sing_plur, plur_sing, sing_def, sig_levels_sing, deep_sig_sing, obj_sig_sing } = this.maps;
 		let sig = this.sig(item);
 		let s_sig = sig.split(',');
 		//console.log('Grammar single_forms_sig s_sig', s_sig);
@@ -4198,14 +4224,30 @@ class Grammar {
 
 // poly-convert - sensible and unused name.
 
-// Could an Eventify function work well and be used by Evented_Class?
+//    * @param  {[type]} config [description]
 
+// Could an Eventify function work well and be used by Evented_Class?
+/** Evented_Class description */
 class Evented_Class {
+	//the class constructor
+    /**
+     * constructor description
+    
+     */
 	'constructor'() {
 		Object.defineProperty(this, '_bound_events', {
 			value: {}
 		});
 	}
+
+
+	//Another method. Receives a Fruit object parameter, public
+    /**
+     * raise_event description
+     * @param  {String} name      [event name]
+     * @param  {Array=} arr_params [optional parameters array]
+     * @return {Object}            [res]
+     */
 
 	'raise_event'() {
 		let a = Array.prototype.slice.call(arguments),
@@ -4420,9 +4462,16 @@ class Evented_Class {
 		return res;
 	}
 
+	//Another method. Receives a Fruit object parameter, public
+    /**
+     * add_event_listener description
+     * @param  {String} name      [event name]
+     * @param  {Function} listener [event listener function]
+     */
+
 	'add_event_listener'() {
 
-		const {event_events} = this;
+		const { event_events } = this;
 
 		let a = Array.prototype.slice.call(arguments), // turns arguments to an array
 			sig = get_a_sig(a);
@@ -4478,8 +4527,16 @@ class Evented_Class {
 	}
 	*/
 
+
+	//Another method. Receives a Fruit object parameter, public
+    /**
+     * remove_event_listener description
+     * @param  {String} name      [event name]
+     * @param  {Function} listener [event listener function]
+     */
+
 	'remove_event_listener'(event_name, fn_listener) {
-		const {event_events} = this;
+		const { event_events } = this;
 		//console.log('Evented_Class remove_event_listener', event_name);
 		//console.trace();
 		if (this._bound_events) {
@@ -4531,6 +4588,14 @@ class Evented_Class {
 	}
 
 	*/
+
+	//
+    /**
+     * one Adds a single use event listener
+     * @param  {String} name      [event name]
+     * @param  {Function} listener [event listener function]
+     */
+
 	'one'(event_name, fn_handler) {
 		let inner_handler = function (e) {
 			//let result = fn_handler.call(this, e);
@@ -4558,7 +4623,7 @@ class Evented_Class {
 		if (!this._using_changes) {
 			this._using_changes = true;
 			this.on('change', e_change => {
-				const {name, value} = e_change;
+				const { name, value } = e_change;
 				if (this.map_changes[name]) {
 					each(this.map_changes[name], h_change => {
 						h_change(value);
@@ -4587,9 +4652,22 @@ p.off = p.remove_event_listener;
 //  But could I use the .prototype system to make it effectively?
 //  Code is rather performance critical, don't want to modify the current evented_class.
 
+/**
+ * @function eventify
+ * Eventifies an object - enable event_lister functionality. 
+ * @param {object} obj - The object to be eventified.
+ */
+
 const eventify = obj => {
 
 	const bound_events = {};
+
+	/**
+	 * @function add_event_listener
+	 * obj.on(name, handler) adds an event listener. 
+	 * @param {string} name - The name of the event.
+	 * @param {function} handler - An event handler function.
+	 */
 
 	const add_event_listener = (name, handler) => {
 		if (handler === undefined && typeof name === 'function') {
@@ -4599,19 +4677,33 @@ const eventify = obj => {
 
 		if (!bound_events[name]) bound_events[name] = [];
 		bound_events[name].push(handler);
-		
+
 	}
 
+
+	/**
+	 * @function remove_event_listener
+	 * obj.off(name, handler) removes an event listener. 
+	 * @param {string} name - The name of the event.
+	 * @param {function} handler - An event handler function.
+	 */
 	const remove_event_listener = (name, handler) => {
 		if (bound_events[name]) {
 			const i = bound_events[name].indexOf(handler);
 			if (i > -1) {
 				bound_events[name].splice(i, 1);
-			} 
+			}
 		}
 		// 
 	}
 
+
+	/**
+	 * @function raise_event
+	 * obj.raise(name, o_param) raises an Event. 
+	 * @param {string} name - The name of the event.
+	 * @param {object=} optional_param - An optional parameter object.
+	 */
 	const raise_event = (name, optional_param) => {
 		// raise it on each of the event handlers.
 		const arr_named_events = bound_events[name];
@@ -4633,7 +4725,7 @@ const eventify = obj => {
 					arr_named_events[c].call(obj);
 				}
 			}
-			
+
 		}
 	}
 

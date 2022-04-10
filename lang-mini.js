@@ -257,6 +257,18 @@ const load_type = (name, abbreviation, fn_detect_instance) => {
 	using_type_plugins = true;
 }
 
+// Loading transformations into the jsgui core of lang-mini?
+//  Would include compilations.
+//   Ability to compile code from lang-mini would be nice
+//   Lang-mini could even become / become used as a compiler tool.
+//   lang-mini becoming a (small) JS hub of means to change data formats, though the functions / modules
+//    to carry out those changes would be loaded in from elsewhere.
+
+
+
+
+
+
 // A grammar class would make sense.
 //  Can use that grammar class to parse / reprocess / rearrange function sigs.
 //   Want function sigs that declare what objects get put through in a way that the app has more understanding of it.
@@ -4736,12 +4748,38 @@ const eventify = obj => {
 	return obj;
 }
 
-
-
 // Nice if this had some vector manipulation functions.
 // lang-plus
 
-const lang_mini = {
+// Data transformation / conversion within lang-mini could be very helpful.
+
+// lang_mini.transformers
+// lang_mini.compilers
+
+
+// Compilers may need to open / reference more than 1 file.
+// lang_mini.compilers.load('rsx', require('rsx'), {
+//		input: 'rsx', output: 'js'
+//})
+
+
+// Maybe lang-tools would be the better place for Compiler.
+//  Could be too large an expansion of that module?
+//   Would be more for the server.
+
+
+// Maybe make lang-mini an evented class here?
+//  Then it could deal with events / notifications.
+
+class Publisher {
+	constructor(spec) {
+
+	}
+}
+
+
+
+const lang_mini_props = {
 	'each': each,
 	'is_array': is_array,
 	'is_dom_node': is_dom_node,
@@ -4824,13 +4862,23 @@ const lang_mini = {
 	'distance_between_points': distance_between_points,
 
 	'get_typed_array': get_typed_array,
-	'gta': get_typed_array
+	'gta': get_typed_array,
 
-
-
-
+	'Publisher': Publisher
 	// v_add v_subtract v_multiply v_divide
 
 };
+
+const lang_mini = new Evented_Class();
+Object.assign(lang_mini, lang_mini_props);
+
+
+lang_mini.note = (str_name, str_state, obj_properties) => {
+	obj_properties = obj_properties || {};
+	obj_properties.name = str_name;
+	obj_properties.state = str_state;
+	lang_mini.raise('note', obj_properties)
+}
+
 
 module.exports = lang_mini;

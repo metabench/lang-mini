@@ -4771,9 +4771,9 @@ const eventify = obj => {
 // Maybe make lang-mini an evented class here?
 //  Then it could deal with events / notifications.
 
-class Publisher {
-	constructor(spec) {
-
+class Publisher extends Evented_Class {
+	constructor(spec = {}) {
+		super({});
 	}
 }
 

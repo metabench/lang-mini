@@ -121,7 +121,20 @@ const multiply_2_numbers = mfp({
 
 // Possibly make this function async?
 
+// Creating a new type module may help most...?
+//   Though having it in lang-mini should be fine.
+
+
+
+
+
 const old = () => {
+
+    // Function that defines an interface essentially.
+    //   Fixed input and return types.
+
+
+
         
     const check_credentials = mfp({
         'name': 'check_credentials',

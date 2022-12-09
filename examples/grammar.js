@@ -16,10 +16,6 @@ const { each, Grammar, deep_sig, tf, tof, mfp } = lang;
 // single_forms_sig
 //  take item (can be arguments object) and make a sig version that has plural items as single.
 
-
-
-
-
 // Lower level grammar processing will be useful for a variety of underlying functionality.
 //  Want it to be extendable in some ways?
 
@@ -143,6 +139,42 @@ const credentials = [
 // Should itentify it as user_logins
 const t2 = ua_grammar.tof(credentials);
 console.log('t2', t2);
+
+// 2022 - Grammar seems allright enough with some simple types.
+//   Not so sure right now about having it work with the more complex types (1 signifier, n representations)
+//   In normal programming terminology, Array is a Complex Type.
+//     Will need to call them Signifier-Representations types?
+//       Signified Representations Types.
+//         Sig_Reps
+//   In JS these are kind of a L2 class?.
+//   Need some kind of subtype / inheritance here.
+//     Or more to do with category linkage than actual inheritance.
+//       Meaning that a signifier could be a subsignifier.
+//   Date type
+//     Then could have a subtype of dates that is for UNIX-compatable dates - restricted range.
+//   Some specific types could have restricted resolutions or capacities or whatever?.
+
+// eg unixdatetime extends datetime (with restrictions), and the types within it become more specific, or limited.
+
+// Type_Restriction? Type_Signifier_Restriction?
+//   This Grammar system does seem somewhat concerned with types like these.
+//   Seems best to work on them separately, unless their functionality can support other - likely best with 1 as platform for other,
+//     This SR_Type system seems more developed from the ground-up to solve issues to do with HTML controls and views.
+
+
+
+
+
+
+// type.extend({restrictions: [...]})
+
+
+
+
+
+
+
+
 
 // grammar tof needs more work.
 

@@ -213,3 +213,137 @@ get_typed_array / gta function
 
     // convert(input, conversion_schema)
     // fn_convert(schema) returns convert(input)
+
+
+2022 - Consolidation ??? How to do that
+    Examples, tests
+
+2022 - Further data types work.
+    lang-mini already has plenty of use regarding some basics to do with types. Possibly improve that. Possibly make new functionality.
+
+    These types will be a bit like an object schema to be used within the application.
+
+    Lang-mini looks like the right low-level place to put this functionality to do with types that will soon be used to identify that a Control
+        interacts with some specific type / types of data, eg color, and how there are components to that.
+
+
+    No need for internal representation of the values, it seems.
+
+    // 
+
+
+    Type may be enough, just a Type class.
+    Is a number? Is anything else?
+    Overall type...?
+    Well, number is a type. So will need to have subtypes.
+    Maybe have general concept of a number rather than any programmatic representation of one, then can assign representations in
+      programming languages / formalised.
+
+    Type_Component
+        eg r 8bit
+
+    Be able to make such items from functions, even if it's a function that calls a constructor.
+    Make it space efficient.
+
+
+    Type_Identifier perhaps?
+    Type_Representation perhaps - eg a representation of a color as a hex string.
+        Possibility of a type representation having restrictions, eg the range of available years.
+    // And there is an array of items in the sequence in the definition of the type.
+
+    This should be clever in terms of representing multiple values within a part of binary data or with numbers
+    Eg, could represent as 256bits and use 8 32 bit integers.
+
+    Type_Converter too?
+
+Has been more theoretical (so far) work on both signifying types as well as representing them.
+The same info (as signified in one way) can be held or interated with in multiple different ways.
+
+
+
+.model - what data type (as signified)
+         use only one representation?
+            specify how the data is represented?
+
+// model.type_representation ...
+// model.type_signification ...
+
+// ctrl.value
+//   meaning ctrl.model.value perhaps?
+//     always .value? Could make it easier to program them. Could keep them more consistent.
+
+// lang-mini could keep its own lists / indexes / maps of the different type representations and signifiers / significations.
+
+// making a ui8 / byte value editor.
+//   specific type of number editor.
+//   seems like very simple editors (likely compact) are the right tool for the job.
+//   0-255 seems like a popup slider could work well.
+//     seems like the multi-view mode would be very effective. As in, different views that could be used in order to edit that value.
+//   Would have a very simple model as well.
+
+// View does not have to interact with the data in the same way its (normally) represented in the model.
+//   Could break it down into more detail.
+
+// Controls with interchangable views may make the most sense.
+//   A view having the capability of adding functionality to a control???
+
+// Number_Editor seems like a good Control to start working on regarding this updated MV / MVC pattern.
+//   Specifying that it's for editing numbers
+//   Then multiple views will be available depending on how it is to be done.
+
+
+
+
+//   Also seems to provide a nicer upgrade path.
+//     Create a new view for the control, rather than a whole new control.
+//     The view needs to be compatible with the model.
+//       Though to an extent, can make the polymorphic view.
+//         A hex editor type thing, or hex and json combination editor type thing.
+// Putting all / most of the composition and rendering into the view?
+// Make an HTML_Element_View class?
+//   And have Control (by default) use that?
+
+
+
+2022 - Work in jsgui html controls has shown that making a much more capable 'model' system would help a lot, and be worth having available
+  before incorporating them, and multiple views, into controls.
+  Model could also be applied more directly to React.
+    Will see about using such models with React before too long.
+      Possibly lang-mini could be used somewhat like Redux, for state management.
+
+// Sig_Reps type makes a lot of sense.
+//   A single signifier
+//   An array (or map?) of representations. Map may work better if they are named, array if they are not. Allow either would be nice.
+
+// SR_Type perhaps? Maybe as shorthand, but have the full name defined.
+// Signifier_Representations_Type
+
+// srtype.subtype(...) should work.
+
+Consider removal of Grammar class from lang-mini
+Consider its improvement
+Consider moving it to separate module
+  Consider making it support the srtype system.
+
+Consider Calendar control
+  A reason it could support multiple models is there are different calendar models.
+    Or at least the potential of supporting multiple calendar models is a reason why contols should have capacity or potential for multiple models.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

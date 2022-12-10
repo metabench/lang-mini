@@ -21,7 +21,7 @@ const each = (collection, fn, context) => {
 			return collection.each(fn, context);
 		}
 		let ctu = true;
-		let stop = function() {
+		let stop = function () {
 			ctu = false;
 		};
 		if (is_array(collection)) {
@@ -56,35 +56,35 @@ const is_array = Array.isArray;
 const is_dom_node = function isDomNode(obj) {
 	return (!!obj && typeof obj.nodeType !== 'undefined' && typeof obj.childNodes !== 'undefined');
 };
-const get_truth_map_from_arr = function(arr) {
+const get_truth_map_from_arr = function (arr) {
 	let res = {};
-	each(arr, function(v, i) {
+	each(arr, function (v, i) {
 		res[v] = true;
 	});
 	return res;
 };
-const get_arr_from_truth_map = function(truth_map) {
+const get_arr_from_truth_map = function (truth_map) {
 	let res = [];
-	each(truth_map, function(v, i) {
+	each(truth_map, function (v, i) {
 		res.push(i);
 	});
 	return res;
 };
-const get_map_from_arr = function(arr) {
+const get_map_from_arr = function (arr) {
 	let res = {};
 	for (let c = 0, l = arr.length; c < l; c++) {
 		res[arr[c]] = c;
 	}
 	return res;
 }
-const arr_like_to_arr = function(arr_like) {
+const arr_like_to_arr = function (arr_like) {
 	let res = new Array(arr_like.length);
 	for (let c = 0, l = arr_like.length; c < l; c++) {
 		res[c] = arr_like[c];
 	};
 	return res;
 };
-const is_ctrl = function(obj) {
+const is_ctrl = function (obj) {
 	return (typeof obj !== 'undefined' && obj !== null && is_defined(obj.__type_name) && is_defined(obj.content) && is_defined(obj.dom));
 };
 const map_loaded_type_fn_checks = {},
@@ -245,7 +245,7 @@ const atof = (arr) => {
 	return res;
 };
 const is_defined = (value) => {
-		return typeof(value) != 'undefined';
+		return typeof (value) != 'undefined';
 	},
 	isdef = is_defined;
 const stringify = JSON.stringify;
@@ -406,7 +406,7 @@ const deep_sig = (item, max_depth = -1, depth = 0) => {
 	}
 	return res;
 }
-const trim_sig_brackets = function(sig) {
+const trim_sig_brackets = function (sig) {
 	if (tof(sig) === 'string') {
 		if (sig.charAt(0) == '[' && sig.charAt(sig.length - 1) == ']') {
 			return sig.substring(1, sig.length - 1);
@@ -415,15 +415,14 @@ const trim_sig_brackets = function(sig) {
 		}
 	}
 };
-const arr_trim_undefined = function(arr_like) {
+const arr_trim_undefined = function (arr_like) {
 	let res = [];
 	let last_defined = -1;
 	let t, v;
 	for (let c = 0, l = arr_like.length; c < l; c++) {
 		v = arr_like[c];
 		t = tof(v);
-		if (t == 'undefined') {
-		} else {
+		if (t == 'undefined') {} else {
 			last_defined = c;
 		}
 	}
@@ -434,7 +433,7 @@ const arr_trim_undefined = function(arr_like) {
 	}
 	return res;
 };
-const functional_polymorphism = function(options, fn) {
+const functional_polymorphism = function (options, fn) {
 	let a0 = arguments;
 	if (a0.length === 1) {
 		fn = a0[0];
@@ -442,7 +441,7 @@ const functional_polymorphism = function(options, fn) {
 	}
 	let arr_slice = Array.prototype.slice;
 	let arr, sig, a2, l, a;
-	return function() {
+	return function () {
 		a = arguments;
 		l = a.length;
 		if (l === 1) {
@@ -498,8 +497,7 @@ const parse_sig = (str_sig, opts = {}) => {
 					obj_res.modifiers = obj_res.modifiers || [];
 					obj_res.modifiers.push('+');
 					distil_suffix_modifiers();
-				} else {
-				}
+				} else {}
 			}
 			distil_suffix_modifiers();
 			obj_res.type_name = type_name;
@@ -594,7 +592,7 @@ const map_native_type_sigs = {
 	'a': true,
 	'd': true
 }
-const mfp = function() {
+const mfp = function () {
 	const a1 = arguments;
 	const sig1 = get_a_sig(a1);
 	let options = {};
@@ -733,7 +731,7 @@ const mfp = function() {
 			tm_sig_fns[sig] = true;
 		});
 	})();
-	const res = function() {
+	const res = function () {
 		const a2 = arguments;
 		const l2 = a2.length;
 		console.log('');
@@ -749,8 +747,7 @@ const mfp = function() {
 		if (skip) {
 			if (skip(a2)) {
 				do_skip = true;
-			} else {
-			}
+			} else {}
 		}
 		if (!do_skip) {
 			if (inner_map_sig_fns[mfp_fn_call_deep_sig]) {
@@ -822,15 +819,14 @@ const mfp = function() {
 	}
 	return res;
 }
-const convert = (input, conversion_schema) => {
-}
-let arrayify = fp(function(a, sig) {
+const convert = (input, conversion_schema) => {}
+let arrayify = fp(function (a, sig) {
 	let param_index, num_parallel = 1,
 		delay = 0,
 		fn;
 	let res;
-	let process_as_fn = function() {
-		res = function() {
+	let process_as_fn = function () {
+		res = function () {
 			let a = arr_like_to_arr(arguments),
 				ts = atof(a),
 				t = this;
@@ -839,7 +835,7 @@ let arrayify = fp(function(a, sig) {
 				if (typeof param_index !== 'undefined' && ts[param_index] == 'array') {
 					let res = [];
 					let fns = [];
-					each(a[param_index], function(v, i) {
+					each(a[param_index], function (v, i) {
 						let new_params = a.slice(0, a.length - 1);
 						new_params[param_index] = v;
 						fns.push([t, fn, new_params]);
@@ -875,7 +871,7 @@ let arrayify = fp(function(a, sig) {
 	}
 	if (sig == '[o]') {
 		let res = [];
-		each(a[0], function(v, i) {
+		each(a[0], function (v, i) {
 			res.push([v, i]);
 		});
 	} else if (sig == '[f]') {
@@ -896,21 +892,21 @@ let arrayify = fp(function(a, sig) {
 let mapify = (target) => {
 	let tt = tof(target);
 	if (tt == 'function') {
-		let res = fp(function(a, sig) {
+		let res = fp(function (a, sig) {
 			let that = this;
 			if (sig == '[o]') {
 				let map = a[0];
-				each(map, function(v, i) {
+				each(map, function (v, i) {
 					target.call(that, v, i);
 				});
 			} else if (sig == '[o,f]') {
 				let map = a[0];
 				let callback = a[1];
 				let fns = [];
-				each(map, function(v, i) {
+				each(map, function (v, i) {
 					fns.push([target, [v, i]]);
 				});
-				call_multi(fns, function(err_multi, res_multi) {
+				call_multi(fns, function (err_multi, res_multi) {
 					if (err_multi) {
 						callback(err_multi);
 					} else {
@@ -926,17 +922,17 @@ let mapify = (target) => {
 		let res = {};
 		if (arguments.length == 1) {
 			if (is_arr_of_strs(target)) {
-				each(target, function(v, i) {
+				each(target, function (v, i) {
 					res[v] = true;
 				});
 			} else {
-				each(target, function(v, i) {
+				each(target, function (v, i) {
 					res[v[0]] = v[1];
 				});
 			}
 		} else {
 			let by_property_name = arguments[1];
-			each(target, function(v, i) {
+			each(target, function (v, i) {
 				res[v[by_property_name]] = v;
 			});
 		}
@@ -980,8 +976,8 @@ let clone = fp((a, sig) => {
 		return res;
 	}
 });
-let set_vals = function(obj, map) {
-	each(map, function(v, i) {
+let set_vals = function (obj, map) {
+	each(map, function (v, i) {
 		obj[i] = v;
 	});
 };
@@ -1040,7 +1036,7 @@ let ll_get = (a0, a1) => {
 		}
 	}
 };
-let truth = function(value) {
+let truth = function (value) {
 	return value === true;
 };
 let iterate_ancestor_classes = (obj, callback) => {
@@ -1053,12 +1049,12 @@ let iterate_ancestor_classes = (obj, callback) => {
 		iterate_ancestor_classes(obj._superclass, callback);
 	}
 }
-let is_arr_of_t = function(obj, type_name) {
+let is_arr_of_t = function (obj, type_name) {
 	let t = tof(obj),
 		tv;
 	if (t == 'array') {
 		let res = true;
-		each(obj, function(v, i) {
+		each(obj, function (v, i) {
 			tv = tof(v);
 			if (tv != type_name) res = false;
 		});
@@ -1067,20 +1063,19 @@ let is_arr_of_t = function(obj, type_name) {
 		return false;
 	}
 }
-let is_arr_of_arrs = function(obj) {
+let is_arr_of_arrs = function (obj) {
 	return is_arr_of_t(obj, 'array');
 }
-let is_arr_of_strs = function(obj) {
+let is_arr_of_strs = function (obj) {
 	return is_arr_of_t(obj, 'string');
 }
 let input_processors = {};
 let output_processors = {};
-let call_multiple_callback_functions = fp(function(a, sig) {
+let call_multiple_callback_functions = fp(function (a, sig) {
 	let arr_functions_params_pairs, callback, return_params = false;
 	let delay;
 	let num_parallel = 1;
-	if (a.l == 1) {
-	}
+	if (a.l == 1) {}
 	if (a.l == 2) {
 		arr_functions_params_pairs = a[0];
 		callback = a[1];
@@ -1134,8 +1129,7 @@ let call_multiple_callback_functions = fp(function(a, sig) {
 				params = [];
 			} else {
 				if (pair) {
-					if (pair.length == 1) {
-					}
+					if (pair.length == 1) {}
 					if (pair.length == 2) {
 						if (tof(pair[1]) == 'function') {
 							context = pair[0];
@@ -1226,9 +1220,9 @@ let call_multiple_callback_functions = fp(function(a, sig) {
 });
 let multi = call_multiple_callback_functions;
 let call_multi = call_multiple_callback_functions;
-let Fns = function(arr) {
+let Fns = function (arr) {
 	let fns = arr || [];
-	fns.go = function(parallel, delay, callback) {
+	fns.go = function (parallel, delay, callback) {
 		let a = arguments;
 		let al = a.length;
 		if (al == 1) {
@@ -1243,7 +1237,7 @@ let Fns = function(arr) {
 	}
 	return fns;
 }
-let native_constructor_tof = function(value) {
+let native_constructor_tof = function (value) {
 	if (value === String) {
 		return 'String';
 	}
@@ -1260,7 +1254,7 @@ let native_constructor_tof = function(value) {
 		return 'Object';
 	}
 }
-let sig_match = function(sig1, sig2) {
+let sig_match = function (sig1, sig2) {
 	let sig1_inner = sig1.substr(1, sig1.length - 2);
 	let sig2_inner = sig2.substr(1, sig2.length - 2);
 	if (sig1_inner.indexOf('[') > -1 || sig1_inner.indexOf(']') > -1 || sig2_inner.indexOf('[') > -1 || sig2_inner.indexOf(']') > -1) {
@@ -1276,8 +1270,7 @@ let sig_match = function(sig1, sig2) {
 		while (res && c < l) {
 			i1 = sig1_parts[c];
 			i2 = sig2_parts[c];
-			if (i1 === i2) {
-			} else {
+			if (i1 === i2) {} else {
 				if (i1 !== '?') {
 					res = false;
 				}
@@ -1289,14 +1282,14 @@ let sig_match = function(sig1, sig2) {
 		return false;
 	}
 }
-let remove_sig_from_arr_shell = function(sig) {
+let remove_sig_from_arr_shell = function (sig) {
 	if (sig[0] == '[' && sig[sig.length - 1] == ']') {
 		return sig.substring(1, sig.length - 1);
 	}
 	return sig;
 };
-let str_arr_mapify = function(fn) {
-	let res = fp(function(a, sig) {
+let str_arr_mapify = function (fn) {
+	let res = fp(function (a, sig) {
 		if (a.l == 1) {
 			if (sig == '[s]') {
 				let s_pn = a[0].split(' ');
@@ -1309,7 +1302,7 @@ let str_arr_mapify = function(fn) {
 			if (tof(a[0]) == 'array') {
 				let res2 = {},
 					that = this;
-				each(a[0], function(v, i) {
+				each(a[0], function (v, i) {
 					res2[v] = fn.call(that, v);
 				});
 				return res2;
@@ -1368,7 +1361,7 @@ let deep_arr_iterate = (arr, path = [], callback) => {
 	})
 }
 let prom = (fn) => {
-	let fn_res = function() {
+	let fn_res = function () {
 		const a = arguments;
 		const t_a_last = typeof a[a.length - 1];
 		if (t_a_last === 'function') {
@@ -1389,7 +1382,7 @@ let prom = (fn) => {
 	return fn_res;
 }
 const vectorify = n_fn => {
-	let fn_res = fp(function(a, sig) {
+	let fn_res = fp(function (a, sig) {
 		if (a.l > 2) {
 			throw 'stop - need to check.'
 			let res = a[0];
@@ -1440,14 +1433,14 @@ const v_add = vectorify(n_add),
 	v_subtract = vectorify(n_subtract),
 	v_multiply = vectorify(n_multiply),
 	v_divide = vectorify(n_divide);
-const vector_magnitude = function(vector) {
+const vector_magnitude = function (vector) {
 	// may calculate magnitudes of larger dimension vectors too.
 	// alert(tof(vector[0]));
 	// alert(vector[0] ^ 2);
 	var res = Math.sqrt((Math.pow(vector[0], 2)) + (Math.pow(vector[1], 2)));
 	return res;
 };
-const distance_between_points = function(points) {
+const distance_between_points = function (points) {
 	var offset = v_subtract(points[1], points[0]);
 	//console.log('offset ' + stringify(offset));
 	return vector_magnitude(offset);
@@ -1474,7 +1467,7 @@ const map_tas_by_type = {
 	'f32': Float32Array,
 	'f64': Float64Array
 }
-const get_typed_array = function() {
+const get_typed_array = function () {
 	const a = arguments;
 	let length, input_array;
 	const type = a[0];
@@ -1568,8 +1561,7 @@ class Grammar {
 				}
 			} else if (trd === 'a') {
 				let res = '';
-				if (level === 0) {
-				} else {
+				if (level === 0) {} else {
 					res = res + '[';
 				}
 				each(resolved_def, (item, c) => {
@@ -1578,8 +1570,7 @@ class Grammar {
 					}
 					res = res + resolved_def_to_sig(item, level + 1);
 				});
-				if (level === 0) {
-				} else {
+				if (level === 0) {} else {
 					res = res + ']';
 				}
 				return res;
@@ -1654,8 +1645,7 @@ class Grammar {
 				if (c === 0) {
 					all_arr_items_type = subitem_type;
 				} else {
-					if (all_arr_items_type === subitem_type) {
-					} else {
+					if (all_arr_items_type === subitem_type) {} else {
 						all_arr_items_type = null;
 						stop();
 					}
@@ -1726,13 +1716,11 @@ class Grammar {
 							if (same_grammar_type === undefined) {
 								same_grammar_type = sig_subitem;
 							} else {
-								if (same_grammar_type === sig_subitem) {
-								} else {
+								if (same_grammar_type === sig_subitem) {} else {
 									same_grammar_type = false;
 								}
 							}
-						} else {
-						}
+						} else {}
 					}
 					res = res + sig_subitem;
 				});
@@ -1808,12 +1796,12 @@ class Grammar {
 	}
 }
 class Evented_Class {
-	'constructor' () {
+	'constructor'() {
 		Object.defineProperty(this, '_bound_events', {
 			value: {}
 		});
 	}
-	'raise_event' () {
+	'raise_event'() {
 		let a = Array.prototype.slice.call(arguments),
 			sig = get_a_sig(a);
 		a.l = a.length;
@@ -1930,7 +1918,7 @@ class Evented_Class {
 		}
 		return res;
 	}
-	'add_event_listener' () {
+	'add_event_listener'() {
 		const {
 			event_events
 		} = this;
@@ -1961,7 +1949,7 @@ class Evented_Class {
 		}
 		return this;
 	}
-	'remove_event_listener' (event_name, fn_listener) {
+	'remove_event_listener'(event_name, fn_listener) {
 		const {
 			event_events
 		} = this;
@@ -2003,14 +1991,14 @@ class Evented_Class {
 		}
 		return res;
 	}
-	'one' (event_name, fn_handler) {
-		let inner_handler = function(e) {
+	'one'(event_name, fn_handler) {
+		let inner_handler = function (e) {
 			fn_handler.call(this, e);
 			this.off(event_name, inner_handler);
 		};
 		this.on(event_name, inner_handler);
 	}
-	'changes' (obj_changes) {
+	'changes'(obj_changes) {
 		if (!this.map_changes) {
 			this.map_changes = {};
 		}
@@ -2085,73 +2073,74 @@ class Publisher extends Evented_Class {
 	}
 }
 const lang_mini_props = {
-	'each': each,
-	'is_array': is_array,
-	'is_dom_node': is_dom_node,
-	'is_ctrl': is_ctrl,
-	'clone': clone,
-	'get_truth_map_from_arr': get_truth_map_from_arr,
-	'tm': get_truth_map_from_arr,
-	'get_arr_from_truth_map': get_arr_from_truth_map,
-	'arr_trim_undefined': arr_trim_undefined,
-	'get_map_from_arr': get_map_from_arr,
-	'arr_like_to_arr': arr_like_to_arr,
-	'tof': tof,
-	'atof': atof,
-	'tf': tf,
-	'load_type': load_type,
-	'is_defined': is_defined,
-	'def': is_defined,
-	'Grammar': Grammar,
-	'stringify': stringify,
-	'functional_polymorphism': functional_polymorphism,
-	'fp': fp,
-	'mfp': mfp,
-	'arrayify': arrayify,
-	'mapify': mapify,
-	'str_arr_mapify': str_arr_mapify,
-	'get_a_sig': get_a_sig,
-	'deep_sig': deep_sig,
-	'get_item_sig': get_item_sig,
-	'set_vals': set_vals,
-	'truth': truth,
-	'trim_sig_brackets': trim_sig_brackets,
-	'll_set': ll_set,
-	'll_get': ll_get,
-	'iterate_ancestor_classes': iterate_ancestor_classes,
-	'is_arr_of_t': is_arr_of_t,
-	'is_arr_of_arrs': is_arr_of_arrs,
-	'is_arr_of_strs': is_arr_of_strs,
-	'input_processors': input_processors,
-	'output_processors': output_processors,
-	'call_multiple_callback_functions': call_multiple_callback_functions,
-	'call_multi': call_multi,
-	'multi': call_multi,
-	'native_constructor_tof': native_constructor_tof,
-	'Fns': Fns,
-	'sig_match': sig_match,
-	'remove_sig_from_arr_shell': remove_sig_from_arr_shell,
-	'to_arr_strip_keys': to_arr_strip_keys,
-	'arr_objs_to_arr_keys_values_table': arr_objs_to_arr_keys_values_table,
-	'set_arr_tree_value': set_arr_tree_value,
-	'get_arr_tree_value': get_arr_tree_value,
-	'deep_arr_iterate': deep_arr_iterate,
-	'prom': prom,
-	'combinations': combinations,
-	'combos': combinations,
-	'Evented_Class': Evented_Class,
-	'eventify': eventify,
-	'vectorify': vectorify,
-	'v_add': v_add,
-	'v_subtract': v_subtract,
-	'v_multiply': v_multiply,
-	'v_divide': v_divide,
-	'vector_magnitude': vector_magnitude,
-	'distance_between_points': distance_between_points,
-	'get_typed_array': get_typed_array,
-	'gta': get_typed_array,
-	'Publisher': Publisher
+	each,
+	is_array,
+	is_dom_node,
+	is_ctrl,
+	clone,
+	get_truth_map_from_arr,
+	tm: get_truth_map_from_arr,
+	get_arr_from_truth_map,
+	arr_trim_undefined,
+	get_map_from_arr,
+	arr_like_to_arr,
+	tof,
+	atof,
+	tf,
+	load_type,
+	is_defined,
+	def: is_defined,
+	Grammar,
+	stringify,
+	functional_polymorphism,
+	fp,
+	mfp,
+	arrayify,
+	mapify,
+	str_arr_mapify,
+	get_a_sig,
+	deep_sig,
+	get_item_sig,
+	set_vals,
+	truth,
+	trim_sig_brackets,
+	ll_set,
+	ll_get,
+	iterate_ancestor_classes,
+	is_arr_of_t,
+	is_arr_of_arrs,
+	is_arr_of_strs,
+	input_processors,
+	output_processors,
+	call_multiple_callback_functions,
+	call_multi,
+	multi: call_multi,
+	native_constructor_tof,
+	Fns,
+	sig_match,
+	remove_sig_from_arr_shell,
+	to_arr_strip_keys,
+	arr_objs_to_arr_keys_values_table,
+	set_arr_tree_value,
+	get_arr_tree_value,
+	deep_arr_iterate,
+	prom,
+	combinations,
+	combos: combinations,
+	Evented_Class,
+	eventify,
+	vectorify,
+	v_add,
+	v_subtract,
+	v_multiply,
+	v_divide,
+	vector_magnitude,
+	distance_between_points,
+	get_typed_array,
+	gta: get_typed_array,
+	Publisher
 };
+
 const lang_mini = new Evented_Class();
 Object.assign(lang_mini, lang_mini_props);
 lang_mini.note = (str_name, str_state, obj_properties) => {
@@ -2161,3 +2150,106 @@ lang_mini.note = (str_name, str_state, obj_properties) => {
 	lang_mini.raise('note', obj_properties)
 }
 module.exports = lang_mini;
+
+if (require.main === module) {
+
+
+
+	/*
+	function test_evented_class(test_data) {
+		const create_empty_test_res = () => {
+		  return {
+			passed: [],
+			failed: []
+		  };
+		};
+	  
+		// Initialize res object with empty arrays
+		const res = create_empty_test_res();
+	  
+		// Test each event in test_data
+		for (let i = 0; i < test_data.length; i++) {
+		  const { event_name, event_data } = test_data[i];
+	  
+		  // Test adding the event
+		  const evented_class = new Evented_Class();
+		  evented_class.add_event_listener(event_name, (data) => {
+			if (data === event_data) {
+			  res.passed.push(event_name);
+			} else {
+			  res.failed.push(event_name);
+			}
+		  });
+	  
+		  // Test raising the event
+		  evented_class.raise_event(event_name, event_data);
+		}
+	  
+		// Return test results
+		return res;
+	  }
+	  */
+
+	  const test_data = [
+		{
+			event_name: 'foo',
+			event_data: 'hello'
+		},
+		{
+			event_name: 'bar',
+			event_data: 'world'
+		},
+		{
+			event_name: 'baz',
+			event_data: true
+		}
+	];
+	
+	const create_empty_test_res = () => ({
+		passed: [],
+		failed: []
+	});
+
+	  
+	  function test_evented_class(test_data) {
+		const res = create_empty_test_res();
+	
+		// Create a new instance of Evented_Class
+		const evented_class = new Evented_Class();
+	
+		// Test each event in the test data
+		test_data.forEach(test_event => {
+			const event_name = test_event.event_name;
+			const event_data = test_event.event_data;
+	
+			// Define a listener for the event
+			const listener = data => {
+				if (data === event_data) {
+					// The event was raised with the expected data
+					res.passed.push(event_name);
+				} else {
+					// The event was raised with the wrong data
+					res.failed.push(event_name);
+				}
+			};
+	
+			// Add the listener to the evented class
+			evented_class.on(event_name, listener);
+	
+			// Raise the event
+			evented_class.raise_event(event_name, event_data);
+		});
+	
+		return res;
+	}
+	
+
+
+	const result = test_evented_class(test_data);
+
+	// Print the results of the test
+	console.log('Passed:', result.passed);
+	console.log('Failed:', result.failed);
+
+
+}

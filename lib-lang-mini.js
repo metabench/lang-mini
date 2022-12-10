@@ -173,6 +173,10 @@ class Type_Representation {
 
         const _ = {};
 
+        const map_reserved_property_names = {
+            'name': true
+        };
+
         //  Even the number of bits being in here...?
 
         each(spec, (value, name) => {

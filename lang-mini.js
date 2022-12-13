@@ -2070,6 +2070,20 @@ const eventify = obj => {
 class Publisher extends Evented_Class {
 	constructor(spec = {}) {
 		super({});
+		this.one('ready', () => {
+			this.is_ready = true;
+		})
+	}
+	get when_ready () {
+		return new Promise((solve, jettison) => {
+			if (this.is_ready === true) {
+				solve();
+			} else {
+				this.one('ready', () => {
+					solve();
+				})
+			}
+		})
 	}
 }
 const lang_mini_props = {

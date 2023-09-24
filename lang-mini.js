@@ -4,7 +4,8 @@ let Readable_Stream, Writable_Stream, Transform_Stream;
 const get_stream = () => {
 	if (running_in_node) {
 		return (() => {
-			const stream = require('stream');
+			const str_libname = ('str') + ('eam');
+			const stream = require(str_libname);
 			Readable_Stream = stream.Readable;
 			Writable_Stream = stream.Writable;
 			Transform_Stream = stream.Transform;

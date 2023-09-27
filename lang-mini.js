@@ -2068,6 +2068,15 @@ const eventify = obj => {
 	obj.raise = obj.raise_event = raise_event;
 	return obj;
 }
+
+// Assign_From_Spec_Class
+
+
+// Assign_From_Spec_Evented_Class
+
+
+
+
 class Publisher extends Evented_Class {
 	constructor(spec = {}) {
 		super({});

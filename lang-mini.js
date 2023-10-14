@@ -210,7 +210,7 @@ const tf = (obj) => {
 					return 'T';
 				}
 			}
-			if (obj instanceof Buffer) {
+			if (typeof Buffer !== 'undefined' && obj instanceof Buffer) {
 				return 'B';
 			} else if (obj instanceof Promise) {
 				return 'p';
@@ -1053,7 +1053,7 @@ let iterate_ancestor_classes = (obj, callback) => {
 let is_arr_of_t = function (obj, type_name) {
 	let t = tof(obj),
 		tv;
-	if (t == 'array') {
+	if (t === 'array') {
 		let res = true;
 		each(obj, function (v, i) {
 			tv = tof(v);
@@ -1076,36 +1076,31 @@ let call_multiple_callback_functions = fp(function (a, sig) {
 	let arr_functions_params_pairs, callback, return_params = false;
 	let delay;
 	let num_parallel = 1;
-	if (a.l == 1) {}
-	if (a.l == 2) {
+	if (a.l === 1) {
+	} else if (a.l === 2) {
 		arr_functions_params_pairs = a[0];
 		callback = a[1];
-	}
-	if (a.l == 3) {
-		if (sig == '[a,n,f]') {
+	} else if (a.l === 3) {
+		if (sig === '[a,n,f]') {
 			arr_functions_params_pairs = a[0];
 			num_parallel = a[1];
 			callback = a[2];
-		}
-		if (sig == '[n,a,f]') {
+		} else if (sig === '[n,a,f]') {
 			arr_functions_params_pairs = a[1];
 			num_parallel = a[0];
 			callback = a[2];
-		}
-		if (sig == '[a,f,b]') {
+		} else if (sig === '[a,f,b]') {
 			arr_functions_params_pairs = a[0];
 			callback = a[1];
 			return_params = a[2];
 		}
-	}
-	if (a.l == 4) {
-		if (sig == '[a,n,n,f]') {
+	} else if (a.l === 4) {
+		if (sig === '[a,n,n,f]') {
 			arr_functions_params_pairs = a[0];
 			num_parallel = a[1];
 			delay = a[2];
 			callback = a[3];
-		}
-		if (sig == '[n,n,a,f]') {
+		} else if (sig == '[n,n,a,f]') {
 			arr_functions_params_pairs = a[2];
 			num_parallel = a[0];
 			delay = a[1];

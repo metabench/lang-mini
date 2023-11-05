@@ -23,8 +23,15 @@ const {each, tof} = lang;
 // Some / all of oext would be nice within lang-mini...?
 
 // oext seems to work with types though, or would benefit from types.
+//   No, oext does not have much for types, moving field and prop from oext here, need to get the data types working with Data_Object
+//   and Data_Value. 
 
 
+
+
+
+// Maybe move to lang-tools?
+//   fp() may benefit from integration with this.
 
 
 

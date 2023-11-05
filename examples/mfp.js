@@ -13,6 +13,12 @@ const lang = require('../lang-mini');
 const {each, mfp} = lang;
 const {obs} = require('fnl');
 
+// Possibility of using grammar with Data_Object and Data_Value.
+//   Though does look like it's worth approaching it from a point of simplicity and efficiency too.
+//     Efficiency is more important, simplicity can be in an easy and efficient high level API.
+
+// And if it gets called with the wrong data types....?
+
 const multiply_2_numbers = mfp({
     // could name the params?
     verb: 'multiply'
@@ -302,6 +308,10 @@ const egs = {
 
     'credentials': () => {
 
+        // Using grammar with mfp seems fairly useful / interesting.
+        //   a kind of grammar specified functional programming system.
+        
+
         const check_credentials = mfp({
             'name': 'check_credentials',
             'verb': 'check',
@@ -320,6 +330,7 @@ const egs = {
             'return_type': 'boolean'
         }, (arr_credentials) => {
             const [username, password] = arr_credentials;
+            //console.log('[username, password]', [username, password]);
             if (username === 'root') {
                 if (password === 'ubuntu') {
                     return true;
@@ -336,19 +347,19 @@ const egs = {
         //let res = [];
 
 
-        let r1 = check_credentials('james', 'hello');
+        let r1 = check_credentials(['james', 'hello']);
         // seems to be working:)
 
 
 
         //console.log('r1', r1);
 
-        let r2 = check_credentials('root', 'ubuntu');
+        let r2 = check_credentials(['root', 'ubuntu']);
         // seems to be working:)
 
         
 
-        //console.log('r2', r2);
+        //console.log('**** r2', r2);
 
         return [r1, r2];
     },

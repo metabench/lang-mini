@@ -1,3 +1,18 @@
+// Late 2023 - Should include field from obext as well?
+
+// Bring more data functionality to a lower level...?
+//   Have more of a platform to support Data_Model, Data_Value and Data_Object with.
+
+// data.schema?
+// data.model.schema???
+
+// Would be worth integrating various parts together here and with Data_Model, Data_Object, Data_Value
+
+
+
+
+
+
 const running_in_browser = typeof window !== 'undefined';
 const running_in_node = !running_in_browser;
 let Readable_Stream, Writable_Stream, Transform_Stream;
@@ -434,6 +449,15 @@ const arr_trim_undefined = function (arr_like) {
 	}
 	return res;
 };
+
+// Could see about simply integrating data types into fp....?
+//   That could mean habing get_item_sig return sigs for those data types.
+//     Would need to define signature abbreviations for them.
+
+
+
+
+
 const functional_polymorphism = function (options, fn) {
 	let a0 = arguments;
 	if (a0.length === 1) {
@@ -584,7 +608,8 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 const map_native_types = {
 	'string': true,
 	'boolean': true,
-	'number': true
+	'number': true,
+	'object': true
 }
 const map_native_type_sigs = {
 	's': true,
@@ -593,7 +618,31 @@ const map_native_type_sigs = {
 	'a': true,
 	'd': true
 }
+
+
+// Late 2023 - mfp may be a good basis to proceed with more data-type aware idioms.
+//   Want to use it for mid-level precise and concise code where possible.
+//     May use it or its conventions in implementing some higher level (incl mid level) things.
+
+// Would be worth setting up and testing (maybe also benchmarking) Data_Value objects that specifically represent numbers between
+//  -180 and 180. Also integrating such Data_Value objects within a Data_Object or other Data_Model.
+// Maybe want some kind of _, $, or dm or _dm type shorthand for things that are very useful.
+//   Though it does make sense to abstractify things that get used a lot to make it mroe concise.
+//     Also worth designing and then using the concise idioms.
+
+// mfp seems like some code that could be redone / changed and parts used elsewhere to implement the mid and high level
+//   APIs as wanted.
+
+
+
+
+
 const mfp = function () {
+
+	// mfp looks complex. may need to look into what it's for and can do.
+	//   Looks like an old work-in-progress.
+	//     Should look into benchmarking its usage in different places.
+
 	const a1 = arguments;
 	const sig1 = get_a_sig(a1);
 	let options = {};
@@ -1481,6 +1530,11 @@ const get_typed_array = function () {
 		}
 	}
 }
+
+// Grammar class may be a bit tricky / complex.
+//   Maybe it will help because it can be used to define objects easily???
+//   Maybe need to get into much more detail??? Maybe a quick and efficient piece of grammar code could work here.
+
 class Grammar {
 	constructor(spec) {
 		const eg_spec = {
@@ -2091,6 +2145,255 @@ class Publisher extends Evented_Class {
 		})
 	}
 }
+
+const prop = (...a) => {
+	// ...args?
+	let s = get_a_sig(a);
+	const raise_change_events = true;
+
+	if (s === "[a]") {
+		each(a[0], item_params => {
+			prop.apply(this, item_params);
+		});
+	} else {
+		if (a.length === 2) {
+			if (ia(a[1])) {
+				const target = a[0];
+				each(a[1], item => {
+					if (ia(item)) {
+						throw "NYI 468732";
+					} else {
+						prop(target, item);
+					}
+				});
+			} else {
+				const ta1 = tof(a[1]);
+				if (ta1 === "string") {
+					[obj, prop_name] = a;
+				} else {
+					throw "NYI 468732b";
+				}
+			}
+		} else if (a.length > 2) {
+			if (ia(a[0])) {
+				// the rest of the properties applied to the array of items.
+				throw "stop";
+				let objs = a.shift();
+				each(objs, obj => {
+					prop.apply(this, [obj].concat(item_params)); // bug
+				});
+			} else {
+				let obj, prop_name, default_value, fn_onchange, fn_transform, fn_on_ready, options;
+				const load_options = options => {
+					prop_name = prop_name || options.name || options.prop_name;
+					fn_onchange =
+						options.fn_onchange || options.onchange || options.change;
+					fn_transform =
+						options.fn_transform || options.ontransform || options.transform;
+					fn_on_ready = options.ready || options.on_ready;
+					default_value = default_value || options.default_value || options.default;
+				};
+				if (a.length === 2) {
+					[obj, options] = a;
+					load_options(options);
+				} else if (a.length === 3) {
+					if (ifn(a[2])) {
+						[obj, prop_name, fn_onchange] = a;
+					} else {
+						if (a[2].change || a[2].ready) {
+							load_options(a[2]);
+
+							[obj, prop_name] = a;
+						} else {
+							[obj, prop_name, default_value] = a;
+						}
+					}
+					//[obj, prop_name, default_value, fn_transform] = a;
+				} else if (a.length === 4) {
+					if (ifn(a[2]) && ifn(a[3])) {
+						[obj, prop_name, fn_transform, fn_onchange] = a;
+					} else if (ifn(a[3])) {
+						[obj, prop_name, default_value, fn_onchange] = a;
+					} else {
+						[obj, prop_name, default_value, options] = a;
+						load_options(options);
+					}
+				} else if (a.length === 5) {
+					[obj, prop_name, default_value, fn_transform, fn_onchange] = a;
+				}
+				let _prop_value;
+
+				if (typeof default_value !== 'undefined') _prop_value = default_value;
+				// And a silent set function that does not raise the change event.
+				const _silent_set = value => {
+					let _value;
+					if (fn_transform) {
+						_value = fn_transform(value);
+					} else {
+						_value = value;
+					}
+					_prop_value = _value;
+				}
+				const _set = value => {
+					let _value;
+					if (fn_transform) {
+						_value = fn_transform(value);
+					} else {
+						_value = value;
+					}
+					let old = _prop_value;
+					_prop_value = _value;
+					if (fn_onchange) {
+						fn_onchange({
+							old: old,
+							value: _prop_value
+						});
+					}
+					if (obj.raise && raise_change_events) {
+						obj.raise("change", {
+							name: prop_name,
+							old: old,
+							value: _prop_value
+						});
+					}
+				};
+				if (def(default_value)) {
+					_prop_value = default_value;
+				}
+				const t_prop_name = tf(prop_name);
+				if (t_prop_name === 's') {
+
+					Object.defineProperty(obj, prop_name, {
+						get() {
+							return _prop_value;
+						},
+						set(value) {
+							_set(value);
+						}
+					});
+
+				} else if (t_prop_name === 'a') {
+					const l = prop_name.length;
+					//console.log('prop_name', prop_name);
+					let item_prop_name;
+					for (let c = 0; c < l; c++) {
+						item_prop_name = prop_name[c];
+						//console.log('item_prop_name', item_prop_name);
+						Object.defineProperty(obj, item_prop_name, {
+							get() {
+								return _prop_value;
+							},
+							set(value) {
+								_set(value);
+							}
+						});
+					}
+				} else {
+					throw 'Unexpected name type: ' + t_prop_name;
+				}
+				if (fn_on_ready) {
+					fn_on_ready({
+						silent_set: _silent_set
+					})
+				}
+			}
+		}
+	}
+};
+
+// Would be worth getting into creating conventions and idioms for higher level code.
+//   Though first getting data type systems working right would help.
+//     Making them easy to use.
+
+const field = (...a) => {
+	// Uses obj._
+	//   Seems quite simple, powerful, flexible.
+	//     However, would like a different way of doing it too, could use a local variable defined within the 'field' function.
+
+	// Want to incorporate data types, maybe grammar too.
+
+	// Could use fp for this as well????
+	//   See about really concise function definitions.
+
+	//  Also want to see about some benchmarks too.
+	//    Eg rendering a large page server side 10 times.
+
+	const raise_change_events = true;
+
+	let s = get_a_sig(a);
+	if (s === "[a]") {
+		// prop????
+		each(a[0], item_params => {
+			prop.apply(this, item_params);
+		});
+	} else {
+		if (a.length > 1) {
+			if (ia(a[0])) {
+				// the rest of the properties applied to the array of items.
+				let objs = a.shift();
+				each(objs, obj => {
+					prop.apply(this, [obj].concat(item_params));
+				});
+			} else {
+				let obj, prop_name, default_value, fn_transform;
+				//let raise_change_events = opts.raise_change_events;
+				if (a.length === 2) {
+					[obj, prop_name] = a;
+				} else if (a.length === 3) {
+					if (ifn(a[2])) {
+						[obj, prop_name, fn_transform] = a;
+					} else {
+						[obj, prop_name, default_value] = a;
+					}
+				} else if (a.length === 4) {
+					[obj, prop_name, default_value, fn_transform] = a;
+				}
+
+				if (obj !== undefined) {
+					Object.defineProperty(obj, prop_name, {
+						get() {
+							if (def(obj._)) {
+								return obj._[prop_name];
+							} else {
+								return undefined;
+							}
+							//return _prop_value;
+						},
+						set(value) {
+							//console.log('setting prop: ' + prop_name);
+							let old = (obj._ = obj._ || {})[prop_name];
+							// value must be an array of length 2.
+							let _value;
+							if (fn_transform) {
+								//try {
+								_value = fn_transform(value);
+								//} catch (err) {
+								//    throw err;
+								//}
+							} else {
+								_value = value;
+							}
+							obj._[prop_name] = _value;
+							if (raise_change_events) {
+								obj.raise("change", {
+									name: prop_name,
+									old: old,
+									value: _value
+								});
+							}
+						}
+					});
+					if (def(default_value)) {
+						(obj._ = obj._ || {})[prop_name] = default_value;
+					}
+				} else {
+					throw 'stop';
+				}
+			}
+		}
+	}
+};
+
 const lang_mini_props = {
 	each,
 	is_array,
@@ -2157,7 +2460,9 @@ const lang_mini_props = {
 	distance_between_points,
 	get_typed_array,
 	gta: get_typed_array,
-	Publisher
+	Publisher,
+	field,
+	prop
 };
 
 const lang_mini = new Evented_Class();

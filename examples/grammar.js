@@ -7,6 +7,17 @@
     // Specifically what it does
     //  Could go into how it does it....
     // Then it could work on training data for creation of functions from descriptions, either in English or JSON description.
+
+    // Late 2023 - May be worth extending to cover / handle data models.
+
+    // Integrating further withing Data_Object and Data_Value.
+    //   lang-tools code and examples involving them would help, being able to have data types specified and (auto) validated.
+    //     Including working with async/obs updates too.
+
+    
+
+
+
 */
 
 const lang = require('../lang-mini');
@@ -308,9 +319,8 @@ grammar({
 //   Use the grammar for identifying objects?
 
 // Seems like grammar contexts will be useful for this.
-//  Be able to give  grammar to a function?
+//  Be able to give grammar to a function?
 //   So that the params / io can be understood according to that grammar.
-
 
 
 

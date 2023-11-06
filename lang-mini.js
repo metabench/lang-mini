@@ -2150,6 +2150,7 @@ const prop = (...a) => {
 	// ...args?
 	let s = get_a_sig(a);
 	const raise_change_events = true;
+	const ifn = item => typeof item === "function";
 
 	if (s === "[a]") {
 		each(a[0], item_params => {
@@ -2175,7 +2176,7 @@ const prop = (...a) => {
 				}
 			}
 		} else if (a.length > 2) {
-			if (ia(a[0])) {
+			if (is_array(a[0])) {
 				// the rest of the properties applied to the array of items.
 				throw "stop";
 				let objs = a.shift();
@@ -2257,7 +2258,7 @@ const prop = (...a) => {
 						});
 					}
 				};
-				if (def(default_value)) {
+				if (is_defined(default_value)) {
 					_prop_value = default_value;
 				}
 				const t_prop_name = tf(prop_name);
@@ -2328,7 +2329,7 @@ const field = (...a) => {
 		});
 	} else {
 		if (a.length > 1) {
-			if (ia(a[0])) {
+			if (is_array(a[0])) {
 				// the rest of the properties applied to the array of items.
 				let objs = a.shift();
 				each(objs, obj => {
@@ -2352,7 +2353,7 @@ const field = (...a) => {
 				if (obj !== undefined) {
 					Object.defineProperty(obj, prop_name, {
 						get() {
-							if (def(obj._)) {
+							if (is_defined(obj._)) {
 								return obj._[prop_name];
 							} else {
 								return undefined;
@@ -2383,7 +2384,7 @@ const field = (...a) => {
 							}
 						}
 					});
-					if (def(default_value)) {
+					if (is_defined(default_value)) {
 						(obj._ = obj._ || {})[prop_name] = default_value;
 					}
 				} else {

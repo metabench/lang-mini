@@ -2333,6 +2333,9 @@ class Functional_Data_Type extends Data_Type {
         if (spec.validate_explain) this.validate_explain = spec.validate_explain;
 
 
+		if (spec.parse_string) this.parse_string = spec.parse_string;
+
+
         // and abbreviated name
         // spec.validate (needs to be perfect...)
 

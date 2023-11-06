@@ -651,6 +651,19 @@ lang.Type_Signifier = Type_Signifier;
 lang.Type_Representation = Type_Representation;
 
 
+
+
+// Let's make something a little simpler and focused on representing the types of data in Data_Model classes.
+//   Control is such a class through inheritance, it extends Data_Object.
+
+// nfdt new functional data type function....?
+
+
+
+
+
+
+
 // The representation type is a way to represent something
 //   What is being represented? That is all within a signifier type.
 

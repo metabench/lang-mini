@@ -2147,6 +2147,9 @@ class Publisher extends Evented_Class {
 }
 
 const prop = (...a) => {
+
+	// Using (predefined?) data types here?
+
 	// ...args?
 	let s = get_a_sig(a);
 	const raise_change_events = true;
@@ -2302,11 +2305,117 @@ const prop = (...a) => {
 	}
 };
 
+
+
+class Data_Type {
+
+}
+
+class Functional_Data_Type extends Data_Type {
+    constructor(spec) {
+        
+        // fns for: validate as exact type...?
+        // convert from whatever it is to that exact type (if possible)
+        //   string and binary conversions.
+        //   eg a convert_load type operation.
+
+        // it's super / parent type.
+        super(spec);
+
+        if (spec.supertype) this.supertype = spec.supertype;
+        if (spec.name) this.name = spec.name;
+        if (spec.abbreviated_name) this.abbreviated_name = spec.abbreviated_name;
+
+        // And a validation test....
+        if (spec.validate) this.validate = spec.validate;
+
+        // a validate_explain function may help, could be clearer too with results.
+        if (spec.validate_explain) this.validate_explain = spec.validate_explain;
+
+
+        // and abbreviated name
+        // spec.validate (needs to be perfect...)
+
+        // spec.load_from(...?)
+        // spec.poly_load??
+
+        // spec.input transformers???
+        //   transform from other identified types...?
+
+        // For the moment, we don't want too many and too complex functions.
+
+    }
+}
+
+//lang.Data_Type = Data_Type;
+//lang.Functional_Data_Type = Functional_Data_Type;
+
+
+
+// And let's define some....
+
+// And a correct value...?
+//   Eg if a number is not valid because it has too many decimal points, it could be corrected.
+//     Or even an int that's too large, outside a range, corrected to fit in that range.
+
+// So making a Data_Value stick to using these Data_Types could be helpful.
+
+// For the moment this is really simple and should work fine for some things.
+
+
+Functional_Data_Type.number = new Functional_Data_Type({
+    name: 'number',
+    abbreviated_name: 'n',
+    validate: x => {
+        return !isNaN(x);
+    },
+	parse_string(str) {
+		const p = parseFloat(str);
+		// then is it a number???
+
+		// then is its string the same....?
+		if (p + '' === str) {
+			const parsed_is_valid = this.validate(p);
+			if (parsed_is_valid) {
+				return p;
+			}
+		}
+
+
+	}
+});
+
+Functional_Data_Type.integer = new Functional_Data_Type({
+    name: 'integer',
+    abbreviated_name: 'int',
+    validate: x => {
+        return Number.isInteger(x);
+    },
+	parse_string(str) {
+		const p = parseInt(str);
+		// then is it a number???
+
+		// then is its string the same....?
+		if (p + '' === str) {
+			const parsed_is_valid = this.validate(p);
+			if (parsed_is_valid) {
+				return p;
+			}
+		}
+
+
+	}
+});
+
+
 // Would be worth getting into creating conventions and idioms for higher level code.
 //   Though first getting data type systems working right would help.
 //     Making them easy to use.
 
 const field = (...a) => {
+
+	// Will also want to set data types of fields....
+
 	// Uses obj._
 	//   Seems quite simple, powerful, flexible.
 	//     However, would like a different way of doing it too, could use a local variable defined within the 'field' function.
@@ -2330,27 +2439,55 @@ const field = (...a) => {
 	} else {
 		if (a.length > 1) {
 			if (is_array(a[0])) {
+
+				throw 'stop - need to fix';
 				// the rest of the properties applied to the array of items.
+
+				// But field.apply here...???
 				let objs = a.shift();
 				each(objs, obj => {
-					prop.apply(this, [obj].concat(item_params));
+					field.apply(this, [obj].concat(item_params));
 				});
 			} else {
-				let obj, prop_name, default_value, fn_transform;
+				// Maybe will have a Data_Type....
+
+				let obj, prop_name, data_type, default_value, fn_transform;
 				//let raise_change_events = opts.raise_change_events;
 				if (a.length === 2) {
 					[obj, prop_name] = a;
 				} else if (a.length === 3) {
-					if (ifn(a[2])) {
-						[obj, prop_name, fn_transform] = a;
+
+					// And also check a[2] for being a Data_Type.
+
+					if (a[2] instanceof Data_Type) {
+						[obj, prop_name, data_type, default_value] = a;
 					} else {
-						[obj, prop_name, default_value] = a;
+						if (ifn(a[2])) {
+							[obj, prop_name, fn_transform] = a;
+						} else {
+							[obj, prop_name, default_value] = a;
+						}
 					}
+
+
+					
 				} else if (a.length === 4) {
-					[obj, prop_name, default_value, fn_transform] = a;
+
+					// field(this, 'value', this.data_type, spec.value);
+
+					if (a[2] instanceof Data_Type) {
+						[obj, prop_name, data_type, default_value] = a;
+					} else {
+						[obj, prop_name, default_value, fn_transform] = a;
+					}
+
+					
 				}
 
 				if (obj !== undefined) {
+
+
+
 					Object.defineProperty(obj, prop_name, {
 						get() {
 							if (is_defined(obj._)) {
@@ -2364,28 +2501,62 @@ const field = (...a) => {
 							//console.log('setting prop: ' + prop_name);
 							let old = (obj._ = obj._ || {})[prop_name];
 							// value must be an array of length 2.
-							let _value;
-							if (fn_transform) {
-								//try {
-								_value = fn_transform(value);
-								//} catch (err) {
-								//    throw err;
-								//}
-							} else {
-								_value = value;
-							}
-							obj._[prop_name] = _value;
-							if (raise_change_events) {
-								obj.raise("change", {
-									name: prop_name,
-									old: old,
-									value: _value
-								});
+
+
+							if (old !== value) {
+
+								let is_valid = true;
+								if (data_type) {
+
+									is_valid = data_type.validate(value);
+
+									// if not valid directly, can we parse it from a string???
+
+									if (typeof value === 'string') {
+										const parsed_value = data_type.parse_string(value);
+										is_valid = data_type.validate(parsed_value);
+
+										if (is_valid) value = parsed_value;
+									}
+
+
+
+								}
+								if (is_valid) {
+
+									let _value;
+									if (fn_transform) {
+										//try {
+										_value = fn_transform(value);
+										//} catch (err) {
+										//    throw err;
+										//}
+									} else {
+	
+	
+	
+										_value = value;
+									}
+									obj._[prop_name] = _value;
+									if (raise_change_events) {
+										obj.raise("change", {
+											name: prop_name,
+											old: old,
+											value: _value
+										});
+									}
+								}
 							}
 						}
 					});
 					if (is_defined(default_value)) {
-						(obj._ = obj._ || {})[prop_name] = default_value;
+						let is_valid = true;
+						if (data_type) {
+							is_valid = data_type.validate(default_value);
+						}
+						if (is_valid) {
+							(obj._ = obj._ || {})[prop_name] = default_value;
+						}
 					}
 				} else {
 					throw 'stop';
@@ -2463,7 +2634,9 @@ const lang_mini_props = {
 	gta: get_typed_array,
 	Publisher,
 	field,
-	prop
+	prop,
+	Data_Type,
+	Functional_Data_Type
 };
 
 const lang_mini = new Evented_Class();

@@ -60,6 +60,8 @@ class Type_Signifier {
 
         const name = spec.name;
 
+        // And use fields / quicker way to define these?
+
         Object.defineProperty(this, 'name', {
             get() {
                 return name;

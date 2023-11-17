@@ -25,7 +25,6 @@ const multiply_2_numbers = mfp({
 }, {
     // name the params here?
     //  it can parse these keys here, not take them directly.
-
     'n,n': (num1, num2) => {
         return num1 * num2;
     }
@@ -392,11 +391,21 @@ const egs = {
         // want to share example functions in various places
         //  the mfp multiply 2 numbers would be nice to use in other places as a building block.
 
+        // This seems like it could be used for functional data type validation.
 
-
-
-
+        // define a type validation and maybe parsing using mfp.
+        //   a simple API around validation and parsing.
+        //   toUInt8Array, fromUInt8Array   -   Binary (serialisation) options (too)
+        //    getUIntArraySerialisationInfo ....
         
+
+
+
+
+
+
+
+
 
         const m2nres = multiply_2_numbers(5, 6);
 

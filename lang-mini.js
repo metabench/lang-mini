@@ -9,10 +9,6 @@
 // Would be worth integrating various parts together here and with Data_Model, Data_Object, Data_Value
 
 
-
-
-
-
 const running_in_browser = typeof window !== 'undefined';
 const running_in_node = !running_in_browser;
 let Readable_Stream, Writable_Stream, Transform_Stream;
@@ -120,7 +116,8 @@ const map_loaded_type_fn_checks = {},
 		'promise': 'p',
 		'observable': 'O',
 		'readable_stream': 'R',
-		'writable_stream': 'W'
+		'writable_stream': 'W',
+		'data_value': 'V'
 	};
 let using_type_plugins = false;
 const invert = (obj) => {
@@ -265,6 +262,9 @@ const is_defined = (value) => {
 	},
 	isdef = is_defined;
 const stringify = JSON.stringify;
+
+// Older version???
+
 let _get_item_sig = (i, arr_depth) => {
 	let res;
 	let t1 = typeof i;
@@ -344,6 +344,7 @@ const get_item_sig = (item, arr_depth) => {
 		return _get_item_sig(item, arr_depth);
 	}
 	const t = tof(item);
+
 	if (map_loaded_type_abbreviations[t]) {
 		return map_loaded_type_abbreviations[t];
 	} else {
@@ -365,6 +366,10 @@ const get_item_sig = (item, arr_depth) => {
 const get_a_sig = (a) => {
 	let c = 0,
 		l = a.length;
+
+	//console.log('is_array(a)', is_array(a));
+	//console.log('a', a);
+	//console.log('get_a_sig l', l);
 	let res = '[';
 	let first = true;
 	for (c = 0; c < l; c++) {
@@ -1455,9 +1460,8 @@ const vectorify = n_fn => {
 						if (ats[0].length !== ats[1].length) {
 							throw 'vector array lengths mismatch';
 						} else {
-							const res = new Array(l),
-								arr2 = a[1],
-								l = a[0].length;
+							const l = a[0].length, res = new Array(l),
+								arr2 = a[1];
 							for (let c = 0; c < l; c++) {
 								res[c] = fn_res(a[0][c], arr2[c]);
 							}
@@ -2313,6 +2317,15 @@ class Data_Type {
 
 class Functional_Data_Type extends Data_Type {
     constructor(spec) {
+
+		/*
+		named_property_access: true,
+		property_names: ['latitude', 'longitude'],
+		// And the property types as well being the same in this case?
+		abbreviated_property_names: ['lat', 'long'],
+		numbered_property_access: true, // Maybe that's good enough to make it like an array when there are 2 properties.
+
+		*/
         
         // fns for: validate as exact type...?
         // convert from whatever it is to that exact type (if possible)
@@ -2325,15 +2338,31 @@ class Functional_Data_Type extends Data_Type {
         if (spec.supertype) this.supertype = spec.supertype;
         if (spec.name) this.name = spec.name;
         if (spec.abbreviated_name) this.abbreviated_name = spec.abbreviated_name;
+		if (spec.named_property_access) this.named_property_access = spec.named_property_access;
+		if (spec.numbered_property_access) this.numbered_property_access = spec.numbered_property_access;
+		if (spec.property_names) this.property_names = spec.property_names;
+		if (spec.property_data_types) this.property_data_types = spec.property_data_types;
+		if (spec.wrap_properties) this.wrap_properties = spec.wrap_properties;
+		if (spec.wrap_value_inner_values) this.wrap_value_inner_values = spec.wrap_value_inner_values;
+		if (spec.value_js_type) this.value_js_type = spec.value_js_type;
+		// value_js_type
 
-        // And a validation test....
+		// wrap_value as well????
+		//   Though the value kind-of is itself.
+		//    maybe .inner_js_value is much clearer here?
+		// wrap_value_inner_values
+
+
+
+		if (spec.abbreviated_property_names) this.abbreviated_property_names = spec.abbreviated_property_names;
         if (spec.validate) this.validate = spec.validate;
-
-        // a validate_explain function may help, could be clearer too with results.
         if (spec.validate_explain) this.validate_explain = spec.validate_explain;
-
-
 		if (spec.parse_string) this.parse_string = spec.parse_string;
+		if (spec.parse) this.parse = spec.parse;
+
+		// But also want it to be able to accept undefined value (usually???)
+
+
 
 
         // and abbreviated name
@@ -2364,6 +2393,12 @@ class Functional_Data_Type extends Data_Type {
 // So making a Data_Value stick to using these Data_Types could be helpful.
 
 // For the moment this is really simple and should work fine for some things.
+
+// Allow undefined????
+//   Or better to have that on a different level.
+//     Maybe does make sense as an option here.
+
+//     Or consider it and do it later.
 
 
 Functional_Data_Type.number = new Functional_Data_Type({
@@ -2410,6 +2445,18 @@ Functional_Data_Type.integer = new Functional_Data_Type({
 	}
 });
 
+// Need fdts for things like a [lat, long] array.
+//   Maybe see about making it (easily) from composite data types.
+//     Pair(Lat, Long) or similar
+//     Maybe want it defined in a few lines of string grammar if it's easy.
+//       Would make for a simple API - but would require parsing a custom language.
+
+
+
+
+
+
+
 
 // Would be worth getting into creating conventions and idioms for higher level code.
 //   Though first getting data type systems working right would help.
@@ -2432,6 +2479,8 @@ const field = (...a) => {
 	//    Eg rendering a large page server side 10 times.
 
 	const raise_change_events = true;
+
+	const ifn = item => typeof item === "function";
 
 	let s = get_a_sig(a);
 	if (s === "[a]") {
@@ -2569,6 +2618,15 @@ const field = (...a) => {
 	}
 };
 
+
+
+// Probably need an 'equals' function.
+//   Would make use of .equals and .hash functions / properties when available.
+
+// Though Data_Value.toString and toJSON may be most useful sooner...
+
+// lang-tools should have the equals function that supports Data_Value (maybe Data_Model in general).
+
 const lang_mini_props = {
 	each,
 	is_array,
@@ -2651,6 +2709,17 @@ lang_mini.note = (str_name, str_state, obj_properties) => {
 	lang_mini.raise('note', obj_properties)
 }
 module.exports = lang_mini;
+
+// Bring in grammar / compound types to this typedef type thing.
+//   Types in the fields. 
+
+// Detecting invalid view model states.
+//   Validating according to the spec of the data basically.
+
+// Defining data types and models with a gui....
+
+
+
 
 if (require.main === module) {
 

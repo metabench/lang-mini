@@ -1455,8 +1455,7 @@ const vectorify = n_fn => {
 							res.push(fn_res(a[0][c], n));
 						}
 						return res;
-					}
-					if (ats[1] === 'array') {
+					} else if (ats[1] === 'array') {
 						if (ats[0].length !== ats[1].length) {
 							throw 'vector array lengths mismatch';
 						} else {
@@ -2538,6 +2537,7 @@ const field = (...a) => {
 
 				if (obj !== undefined) {
 
+					// Setting with a data_model or data_value ????
 
 
 					Object.defineProperty(obj, prop_name, {
@@ -2551,8 +2551,32 @@ const field = (...a) => {
 						},
 						set(value) {
 							//console.log('setting prop: ' + prop_name);
+
+							// Get an immutable copy of it???
+
 							let old = (obj._ = obj._ || {})[prop_name];
+
+							// Want better tof that can deal with Data_Model, Data_Value
+							// Maybe Data_String, Data_Array, Data_Object, Data_Number???
+
+							// Could make some more specifically typed ones....
+
+
+
+
+
+
 							// value must be an array of length 2.
+
+							// And what's the typeof value???
+
+
+
+							// Upgrade the field set procedure.
+
+
+
+
 
 
 							if (old !== value) {
@@ -2560,16 +2584,24 @@ const field = (...a) => {
 								let is_valid = true;
 								if (data_type) {
 
+									const t_value = typeof value;
+
 									is_valid = data_type.validate(value);
 
 									// if not valid directly, can we parse it from a string???
 
-									if (typeof value === 'string') {
+									if (t_value === 'string') {
 										const parsed_value = data_type.parse_string(value);
 										is_valid = data_type.validate(parsed_value);
 
 										if (is_valid) value = parsed_value;
 									}
+
+									console.log('t_value', t_value);
+
+									// but also some type of stringifying the value....
+
+
 
 
 
@@ -2598,6 +2630,10 @@ const field = (...a) => {
 										});
 									}
 								}
+							} else {
+								//console.log('old === value');
+								//console.log('old', old);
+								//console.log('value', value);
 							}
 						}
 					});

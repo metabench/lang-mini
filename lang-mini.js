@@ -375,9 +375,8 @@ const get_a_sig = (a) => {
 	for (c = 0; c < l; c++) {
 		if (!first) {
 			res = res + ',';
-		} else {
-			first = false;
 		}
+		first = false;
 		res = res + get_item_sig(a[c]);
 	}
 	res = res + ']';
@@ -566,6 +565,12 @@ const combinations = (arr, arr_idxs_to_ignore) => {
 			map_ignore_idxs[idx_to_ignore] = true;
 		});
 	}
+
+	// Check for empty arrays in the input
+	if (arr.some(subArray => subArray.length === 0)) {
+		return []; // Return an empty result if any sub-array is empty
+	}
+
 	const res = [];
 	const l = arr.length;
 	const arr_idxs_num_options = new Uint32Array(l);
@@ -1527,9 +1532,9 @@ const get_typed_array = function () {
 	const ctr = map_tas_by_type[type];
 	if (ctr) {
 		if (input_array) {
-			return ctr(input_array);
+			return new ctr(input_array);
 		} else if (length) {
-			return ctr(length);
+			return new ctr(length);
 		}
 	}
 }
@@ -2428,20 +2433,13 @@ Functional_Data_Type.integer = new Functional_Data_Type({
     validate: x => {
         return Number.isInteger(x);
     },
-	parse_string(str) {
-		const p = parseInt(str);
-		// then is it a number???
-
-		// then is its string the same....?
-		if (p + '' === str) {
-			const parsed_is_valid = this.validate(p);
-			if (parsed_is_valid) {
-				return p;
-			}
-		}
-
-
-	}
+    parse_string(str) {
+        const p = parseInt(str, 10);
+        if (!isNaN(p) && p.toString() === str) {
+            return p;
+        }
+        return undefined;
+    }
 });
 
 // Need fdts for things like a [lat, long] array.

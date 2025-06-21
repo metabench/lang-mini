@@ -357,3 +357,26 @@ matches_grammar_type
 
 // Then should be able to use sig and type functions that identify these defined types.
 //  Will be very useful for some flexible forms of function processing.
+
+// Example 1: Recognize a single user login
+const singleLogin = ['james', 'password123'];
+console.log('Example 1:', ua_grammar.tof(singleLogin));
+// Expected Output: 'user_login'
+
+// Example 2: Recognize multiple user logins
+const multipleLogins = [
+    ['admin', 'admin123'],
+    ['james', 'password123']
+];
+console.log('Example 2:', ua_grammar.tof(multipleLogins));
+// Expected Output: 'user_logins'
+
+// Example 3: Generate a signature for user data
+const userData = {
+    users: [
+        ['admin', 'admin123'],
+        ['james', 'password123']
+    ]
+};
+console.log('Example 3:', ua_grammar.sig(userData));
+// Expected Output: '{"users":user_logins}'

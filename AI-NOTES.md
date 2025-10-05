@@ -102,6 +102,8 @@ If any inconsistencies or potential issues are found in the library functions, d
 
 - The `combinations` function in `lang-mini.js` does not handle empty arrays correctly. When provided with empty arrays, it returns `[[undefined, undefined]]` instead of the expected `[]`. This issue needs to be addressed after the current testing phase.
 
+- **Clone function deep copy issue**: The `clone()` function does not perform a true deep copy for nested arrays. Modifying an array within a cloned object also affects the original. This was discovered via Jest testing and needs investigation.
+
 ### Observed Behavior
 
 - The `combinations` function in `lang-mini.js` returns `[[undefined, undefined]]` when provided with empty arrays. This behavior may be intentional, but it differs from the expected `[]`. Documenting this behavior for further review.

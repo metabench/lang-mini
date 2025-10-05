@@ -47,6 +47,7 @@ const each = (collection, fn, context) => {
 				} else {
 					res_item = fn(collection[c], c, stop);
 				}
+				if (ctu == false) break; // If stop() was called, do not push current item
 				res.push(res_item);
 			}
 			return res;
@@ -59,6 +60,7 @@ const each = (collection, fn, context) => {
 				} else {
 					res[name] = fn(collection[name], name, stop);
 				}
+				if (ctu === false) break; // If stop() was called, do not set current property
 			}
 			return res;
 		}

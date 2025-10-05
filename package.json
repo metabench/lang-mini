@@ -4,7 +4,7 @@
     "license": "MIT",
     "devDependencies": {
         "fnl": "^0.0.36",
-        "jest": "^29.7.0"
+        "jest": "^30.2.0"
     },
     "comments": [
         "using fnl to run the examples / (tests???) using an observable. seems OK. normal lang-mini does not depend on fnl."
@@ -18,7 +18,7 @@
         "type": "git",
         "url": "https://github.com/metabench/lang-mini.git"
     },
-    "version": "0.0.41",
+    "version": "0.0.42",
     "scripts": {
         "test": "jest && node tests/all-test.js && node tests/new-tests.js",
         "test:jest": "jest",

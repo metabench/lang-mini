@@ -3,7 +3,7 @@
     "main": "lib-lang-mini.js",
     "license": "MIT",
     "devDependencies": {
-        "fnl": "^0.0.36",
+        "fnl": "^0.0.37",
         "jest": "^30.2.0"
     },
     "comments": [
@@ -18,7 +18,7 @@
         "type": "git",
         "url": "https://github.com/metabench/lang-mini.git"
     },
-    "version": "0.0.42",
+    "version": "0.0.43",
     "scripts": {
         "test": "jest && node tests/all-test.js && node tests/new-tests.js",
         "test:jest": "jest",

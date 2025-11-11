@@ -2664,6 +2664,847 @@ const field = (...a) => {
 
 // lang-tools should have the equals function that supports Data_Value (maybe Data_Model in general).
 
+// Expression Parser implementation
+const KEYWORD_LITERALS = new Set(['true', 'false', 'null', 'undefined']);
+const KEYWORD_OPERATORS = new Set(['typeof', 'void', 'delete', 'in', 'instanceof']);
+const MULTI_CHAR_OPERATORS = [
+	'===', '!==', '==', '!=', '<=', '>=', '&&', '||', '??', '++', '--',
+	'+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<', '>>', '>>>', '**'
+];
+const SINGLE_CHAR_OPERATORS = new Set(['+', '-', '*', '/', '%', '=', '!', '<', '>', '&', '|', '^', '~']);
+const PUNCTUATION_CHARS = new Set(['(', ')', '{', '}', '[', ']', ',', ':', '?', '.']);
+const GLOBAL_SCOPE = typeof globalThis !== 'undefined'
+	? globalThis
+	: (typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : {}));
+
+class Tokenizer {
+	constructor(expression) {
+		this.expression = expression || '';
+		this.length = this.expression.length;
+		this.position = 0;
+	}
+
+	tokenize() {
+		const tokens = [];
+		if (!this.expression.trim()) {
+			return tokens;
+		}
+		while (!this.isAtEnd()) {
+			this.skipWhitespace();
+			if (this.isAtEnd()) break;
+			const ch = this.peek();
+			if (this.isIdentifierStart(ch)) {
+				tokens.push(this.tokenizeIdentifier());
+			} else if (this.isDigit(ch) || (ch === '.' && this.isDigit(this.peek(1)))) {
+				tokens.push(this.tokenizeNumber());
+			} else if (ch === '"' || ch === '\'') {
+				tokens.push(this.tokenizeString());
+			} else if (this.isOperatorStart(ch)) {
+				tokens.push(this.tokenizeOperator());
+			} else if (PUNCTUATION_CHARS.has(ch)) {
+				tokens.push(this.tokenizePunctuation());
+			} else {
+				throw new Error(`Unexpected character: ${ch}`);
+			}
+		}
+		return tokens;
+	}
+
+	isAtEnd() {
+		return this.position >= this.length;
+	}
+
+	peek(offset = 0) {
+		if (this.position + offset >= this.length) return '\0';
+		return this.expression[this.position + offset];
+	}
+
+	advance() {
+		return this.expression[this.position++];
+	}
+
+	skipWhitespace() {
+		while (!this.isAtEnd()) {
+			const ch = this.peek();
+			if (/\s/.test(ch)) {
+				this.advance();
+				continue;
+			}
+			if (ch === '/' && this.peek(1) === '/') {
+				while (!this.isAtEnd() && this.peek() !== '\n') {
+					this.advance();
+				}
+				continue;
+			}
+			if (ch === '/' && this.peek(1) === '*') {
+				this.advance();
+				this.advance();
+				while (!this.isAtEnd()) {
+					if (this.peek() === '*' && this.peek(1) === '/') {
+						this.advance();
+						this.advance();
+						break;
+					}
+					this.advance();
+				}
+				continue;
+			}
+			break;
+		}
+	}
+
+	isIdentifierStart(ch) {
+		return /[A-Za-z_$]/.test(ch);
+	}
+
+	isIdentifierPart(ch) {
+		return /[A-Za-z0-9_$]/.test(ch);
+	}
+
+	isDigit(ch) {
+		return /[0-9]/.test(ch);
+	}
+
+	isOperatorStart(ch) {
+		if (ch === '.' && this.peek(1) === '.' && this.peek(2) === '.') {
+			throw new Error('Spread syntax is not supported');
+		}
+		if (ch === '?' && this.peek(1) === '?') {
+			return true;
+		}
+		return SINGLE_CHAR_OPERATORS.has(ch);
+	}
+
+	tokenizeIdentifier() {
+		let value = '';
+		while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
+			value += this.advance();
+		}
+		if (KEYWORD_LITERALS.has(value)) {
+			return { type: 'KEYWORD', value };
+		}
+		if (KEYWORD_OPERATORS.has(value)) {
+			return { type: 'OPERATOR', value };
+		}
+		return { type: 'IDENTIFIER', value };
+	}
+
+	tokenizeNumber() {
+		let value = '';
+		let hasDot = false;
+		while (!this.isAtEnd()) {
+			const ch = this.peek();
+			if (this.isDigit(ch)) {
+				value += this.advance();
+			} else if (ch === '.' && !hasDot) {
+				hasDot = true;
+				value += this.advance();
+			} else {
+				break;
+			}
+		}
+		return { type: 'NUMBER', value: Number(value) };
+	}
+
+	tokenizeString() {
+		const quote = this.advance();
+		let value = '';
+		while (!this.isAtEnd()) {
+			const ch = this.advance();
+			if (ch === quote) {
+				return { type: 'STRING', value };
+			}
+			if (ch === '\\') {
+				const next = this.advance();
+				switch (next) {
+					case 'n': value += '\n'; break;
+					case 'r': value += '\r'; break;
+					case 't': value += '\t'; break;
+					case '\\': value += '\\'; break;
+					case '"': value += '"'; break;
+					case '\'': value += '\''; break;
+					default: value += next;
+				}
+			} else {
+				value += ch;
+			}
+		}
+		throw new Error('Unterminated string literal');
+	}
+
+	tokenizeOperator() {
+		const remaining = this.expression.slice(this.position);
+		for (const op of MULTI_CHAR_OPERATORS) {
+			if (remaining.startsWith(op)) {
+				if (op === '=>') {
+					throw new Error('Arrow functions are not supported');
+				}
+				this.position += op.length;
+				return { type: 'OPERATOR', value: op };
+			}
+		}
+		const ch = this.advance();
+		if (ch === '=' && this.peek() === '>') {
+			throw new Error('Arrow functions are not supported');
+		}
+		if (!SINGLE_CHAR_OPERATORS.has(ch) && ch !== '?') {
+			throw new Error('Unexpected operator');
+		}
+		return { type: 'OPERATOR', value: ch };
+	}
+
+	tokenizePunctuation() {
+		const ch = this.advance();
+		if (ch === '.' && this.peek() === '.' && this.peek(1) === '.') {
+			throw new Error('Spread syntax is not supported');
+		}
+		return { type: 'PUNCTUATION', value: ch };
+	}
+}
+
+class Parser {
+	constructor(tokens) {
+		this.tokens = tokens;
+		this.pos = 0;
+	}
+
+	parse() {
+		if (!this.tokens.length) {
+			throw new Error('Empty expression');
+		}
+		const ast = this.parseExpression();
+		if (!this.isAtEnd()) {
+			throw new Error(`Unexpected token: ${this.peek().value}`);
+		}
+		return ast;
+	}
+
+	parseExpression() {
+		return this.parseConditionalExpression();
+	}
+
+	parseConditionalExpression() {
+		let expr = this.parseLogicalOrExpression();
+		if (this.matchPunctuation('?')) {
+			const consequent = this.parseExpression();
+			this.consume('PUNCTUATION', ':');
+			const alternate = this.parseExpression();
+			expr = {
+				type: 'ConditionalExpression',
+				test: expr,
+				consequent,
+				alternate
+			};
+		}
+		return expr;
+	}
+
+	parseLogicalOrExpression() {
+		let expr = this.parseLogicalAndExpression();
+		while (this.matchOperator('||')) {
+			const operator = this.previous().value;
+			const right = this.parseLogicalAndExpression();
+			expr = this.buildLogicalExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseLogicalAndExpression() {
+		let expr = this.parseNullishExpression();
+		while (this.matchOperator('&&')) {
+			const operator = this.previous().value;
+			const right = this.parseNullishExpression();
+			expr = this.buildLogicalExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseNullishExpression() {
+		let expr = this.parseEqualityExpression();
+		while (this.matchOperator('??')) {
+			const operator = this.previous().value;
+			const right = this.parseEqualityExpression();
+			expr = this.buildLogicalExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseEqualityExpression() {
+		let expr = this.parseRelationalExpression();
+		while (this.matchOperator('==', '!=', '===', '!==')) {
+			const operator = this.previous().value;
+			const right = this.parseRelationalExpression();
+			expr = this.buildBinaryExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseRelationalExpression() {
+		let expr = this.parseAdditiveExpression();
+		while (this.matchOperator('<', '>', '<=', '>=', 'in', 'instanceof')) {
+			const operator = this.previous().value;
+			const right = this.parseAdditiveExpression();
+			expr = this.buildBinaryExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseAdditiveExpression() {
+		let expr = this.parseMultiplicativeExpression();
+		while (this.matchOperator('+', '-')) {
+			const operator = this.previous().value;
+			const right = this.parseMultiplicativeExpression();
+			expr = this.buildBinaryExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseMultiplicativeExpression() {
+		let expr = this.parseUnaryExpression();
+		while (this.matchOperator('*', '/', '%')) {
+			const operator = this.previous().value;
+			const right = this.parseUnaryExpression();
+			expr = this.buildBinaryExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseUnaryExpression() {
+		if (this.matchOperator('+', '-', '!', '~', 'typeof', 'void', 'delete')) {
+			const operator = this.previous().value;
+			const argument = this.parseUnaryExpression();
+			return { type: 'UnaryExpression', operator, argument };
+		}
+		return this.parseLeftHandSideExpression();
+	}
+
+	parseLeftHandSideExpression() {
+		let expr = this.parsePrimaryExpression();
+		while (true) {
+			if (this.matchPunctuation('.')) {
+				const property = this.consumePropertyIdentifier();
+				expr = {
+					type: 'MemberExpression',
+					object: expr,
+					property,
+					computed: false
+				};
+			} else if (this.matchPunctuation('[')) {
+				const property = this.parseExpression();
+				this.consume('PUNCTUATION', ']');
+				expr = {
+					type: 'MemberExpression',
+					object: expr,
+					property,
+					computed: true
+				};
+			} else if (this.matchPunctuation('(')) {
+				const args = this.parseArguments();
+				expr = {
+					type: 'CallExpression',
+					callee: expr,
+					arguments: args
+				};
+			} else {
+				break;
+			}
+		}
+		return expr;
+	}
+
+	parsePrimaryExpression() {
+		const token = this.peek();
+		if (!token) {
+			throw new Error('Unexpected end of expression');
+		}
+		if (token.type === 'NUMBER' || token.type === 'STRING') {
+			this.advance();
+			return { type: 'Literal', value: token.value };
+		}
+		if (token.type === 'KEYWORD') {
+			this.advance();
+			return { type: 'Literal', value: this.literalFromKeyword(token.value) };
+		}
+		if (token.type === 'IDENTIFIER') {
+			this.advance();
+			return { type: 'Identifier', value: token.value };
+		}
+		if (this.matchPunctuation('(')) {
+			const expr = this.parseExpression();
+			this.consume('PUNCTUATION', ')');
+			return expr;
+		}
+		if (this.matchPunctuation('[')) {
+			const elements = [];
+			if (!this.check('PUNCTUATION', ']')) {
+				do {
+					elements.push(this.parseExpression());
+				} while (this.matchPunctuation(','));
+			}
+			this.consume('PUNCTUATION', ']');
+			return { type: 'ArrayExpression', elements };
+		}
+		if (this.matchPunctuation('{')) {
+			const properties = [];
+			if (!this.check('PUNCTUATION', '}')) {
+				do {
+					const key = this.parsePropertyKey();
+					this.consume('PUNCTUATION', ':');
+					const value = this.parseExpression();
+					properties.push({ key, value });
+				} while (this.matchPunctuation(','));
+			}
+			this.consume('PUNCTUATION', '}');
+			return { type: 'ObjectExpression', properties };
+		}
+		throw new Error(`Unexpected token: ${token.value}`);
+	}
+
+	parsePropertyKey() {
+		const token = this.peek();
+		if (token.type === 'IDENTIFIER') {
+			this.advance();
+			return { type: 'Identifier', value: token.value };
+		}
+		if (token.type === 'STRING' || token.type === 'NUMBER' || token.type === 'KEYWORD') {
+			this.advance();
+			const value = token.type === 'KEYWORD' ? this.literalFromKeyword(token.value) : token.value;
+			return { type: 'Literal', value };
+		}
+		throw new Error('Invalid object property key');
+	}
+
+	parseArguments() {
+		const args = [];
+		if (!this.check('PUNCTUATION', ')')) {
+			do {
+				args.push(this.parseExpression());
+			} while (this.matchPunctuation(','));
+		}
+		this.consume('PUNCTUATION', ')');
+		return args;
+	}
+
+	literalFromKeyword(value) {
+		switch (value) {
+			case 'true': return true;
+			case 'false': return false;
+			case 'null': return null;
+			case 'undefined': return undefined;
+			default: return value;
+		}
+	}
+
+	consume(type, value) {
+		if (this.check(type, value)) {
+			return this.advance();
+		}
+		const expected = value ? `${type} '${value}'` : type;
+		throw new Error(`Expected ${expected}`);
+	}
+
+	check(type, value) {
+		if (this.isAtEnd()) return false;
+		const token = this.peek();
+		if (token.type !== type) return false;
+		if (typeof value === 'undefined') return true;
+		return token.value === value;
+	}
+
+	matchOperator(...operators) {
+		if (this.check('OPERATOR') && operators.includes(this.peek().value)) {
+			this.advance();
+			return true;
+		}
+		return false;
+	}
+
+	matchPunctuation(value) {
+		if (this.check('PUNCTUATION', value)) {
+			this.advance();
+			return true;
+		}
+		return false;
+	}
+
+	consumePropertyIdentifier() {
+		const token = this.peek();
+		if (token.type === 'IDENTIFIER') {
+			this.advance();
+			return { type: 'Identifier', value: token.value };
+		}
+		if (token.type === 'STRING' || token.type === 'NUMBER' || token.type === 'KEYWORD') {
+			this.advance();
+			const value = token.type === 'KEYWORD' ? this.literalFromKeyword(token.value) : token.value;
+			return { type: 'Literal', value };
+		}
+		throw new Error('Expected property name');
+	}
+
+	buildBinaryExpression(operator, left, right) {
+		return { type: 'BinaryExpression', operator, left, right };
+	}
+
+	buildLogicalExpression(operator, left, right) {
+		return { type: 'LogicalExpression', operator, left, right };
+	}
+
+	advance() {
+		if (!this.isAtEnd()) {
+			this.pos += 1;
+		}
+		return this.tokens[this.pos - 1];
+	}
+
+	peek() {
+		if (this.isAtEnd()) return null;
+		return this.tokens[this.pos];
+	}
+
+	previous() {
+		return this.tokens[this.pos - 1];
+	}
+
+	isAtEnd() {
+		return this.pos >= this.tokens.length;
+	}
+}
+
+class Evaluator {
+	constructor(context = {}, options = {}) {
+		this.context = context || {};
+		this.helpers = options.helpers || {};
+		this.strict = options.strict || false;
+		this.allowCall = options.allowCall || null;
+		this.allowedFunctions = new Set(options.allowedFunctions || []);
+		Object.values(this.helpers).forEach(value => {
+			if (typeof value === 'function') {
+				this.allowedFunctions.add(value);
+			}
+		});
+	}
+
+	evaluate(node) {
+		switch (node.type) {
+			case 'Literal': return node.value;
+			case 'Identifier': return this.evaluateIdentifier(node);
+			case 'MemberExpression': return this.evaluateMemberExpression(node);
+			case 'CallExpression': return this.evaluateCallExpression(node);
+			case 'UnaryExpression': return this.evaluateUnaryExpression(node);
+			case 'BinaryExpression': return this.evaluateBinaryExpression(node);
+			case 'LogicalExpression': return this.evaluateLogicalExpression(node);
+			case 'ArrayExpression': return node.elements.map(element => this.evaluate(element));
+			case 'ObjectExpression': return this.evaluateObjectExpression(node);
+			case 'ConditionalExpression': return this.evaluateConditionalExpression(node);
+			default: throw new Error(`Unsupported AST node type: ${node.type}`);
+		}
+	}
+
+	evaluateIdentifier(node) {
+		const name = node.value;
+		if (Object.prototype.hasOwnProperty.call(this.helpers, name)) {
+			return this.helpers[name];
+		}
+		if (this.context && Object.prototype.hasOwnProperty.call(this.context, name)) {
+			return this.context[name];
+		}
+		if (name in GLOBAL_SCOPE) {
+			return GLOBAL_SCOPE[name];
+		}
+		if (this.strict) {
+			throw new Error(`Undefined identifier: ${name}`);
+		}
+		console.error(`Undefined identifier: ${name}`);
+		return undefined;
+	}
+
+	evaluateMemberExpression(node) {
+		const object = this.evaluate(node.object);
+		if (object === null || object === undefined) {
+			throw new Error('Cannot read property of null or undefined');
+		}
+		const property = node.computed
+			? this.evaluate(node.property)
+			: node.property.type === 'Identifier'
+				? node.property.value
+				: node.property.value;
+		return object[property];
+	}
+
+	evaluateCallExpression(node) {
+		let callee;
+		let thisArg;
+		if (node.callee.type === 'MemberExpression') {
+			const object = this.evaluate(node.callee.object);
+			if (object === null || object === undefined) {
+				throw new Error('Cannot call property of null or undefined');
+			}
+			const property = node.callee.computed
+				? this.evaluate(node.callee.property)
+				: node.callee.property.type === 'Identifier'
+					? node.callee.property.value
+					: node.callee.property.value;
+			callee = object[property];
+			thisArg = object;
+		} else {
+			callee = this.evaluate(node.callee);
+			thisArg = undefined;
+		}
+		if (typeof callee !== 'function') {
+			throw new Error('Attempted to call a non-function');
+		}
+		if (!this.isCallAllowed(callee, thisArg)) {
+			throw new Error('Function call not allowed by policy');
+		}
+		const args = node.arguments.map(arg => this.evaluate(arg));
+		return callee.apply(thisArg, args);
+	}
+
+	isCallAllowed(fn, thisArg) {
+		if (this.allowCall) {
+			const decision = this.allowCall(fn, thisArg);
+			if (decision === true) return true;
+			if (decision === false) return false;
+		}
+		return this.allowedFunctions.has(fn);
+	}
+
+	evaluateUnaryExpression(node) {
+		let argumentValue;
+		if (node.operator === 'delete') {
+			argumentValue = node.argument;
+		} else if (node.operator === 'typeof' && node.argument.type === 'Identifier' && !this.isIdentifierDefined(node.argument.value)) {
+			argumentValue = undefined;
+		} else {
+			argumentValue = this.evaluate(node.argument);
+		}
+		switch (node.operator) {
+			case '+': return +argumentValue;
+			case '-': return -argumentValue;
+			case '!': return !argumentValue;
+			case '~': return ~argumentValue;
+			case 'typeof':
+				if (node.argument.type === 'Identifier' && !this.isIdentifierDefined(node.argument.value)) {
+					return 'undefined';
+				}
+				return typeof argumentValue;
+			case 'void': return void argumentValue;
+			case 'delete': return this.performDelete(node.argument);
+			default: throw new Error(`Unsupported unary operator: ${node.operator}`);
+		}
+	}
+
+	isIdentifierDefined(name) {
+		return (Object.prototype.hasOwnProperty.call(this.helpers, name) ||
+			(this.context && Object.prototype.hasOwnProperty.call(this.context, name)) ||
+			name in GLOBAL_SCOPE);
+	}
+
+	performDelete(argument) {
+		if (argument.type === 'Identifier' && this.context && typeof this.context === 'object') {
+			return delete this.context[argument.value];
+		}
+		if (argument.type === 'MemberExpression') {
+			const target = this.evaluate(argument.object);
+			if (target === null || target === undefined) {
+				return true;
+			}
+			const property = argument.computed
+				? this.evaluate(argument.property)
+				: argument.property.type === 'Identifier'
+					? argument.property.value
+					: argument.property.value;
+			return delete target[property];
+		}
+		this.evaluate(argument);
+		return true;
+	}
+
+	evaluateBinaryExpression(node) {
+		const left = this.evaluate(node.left);
+		const right = this.evaluate(node.right);
+		switch (node.operator) {
+			case '+': return left + right;
+			case '-': return left - right;
+			case '*': return left * right;
+			case '/': return left / right;
+			case '%': return left % right;
+			case '==': return left == right; // eslint-disable-line eqeqeq
+			case '!=': return left != right; // eslint-disable-line eqeqeq
+			case '===': return left === right;
+			case '!==': return left !== right;
+			case '<': return left < right;
+			case '>': return left > right;
+			case '<=': return left <= right;
+			case '>=': return left >= right;
+			case 'in': return left in right;
+			case 'instanceof': return left instanceof right;
+			default: throw new Error(`Unsupported binary operator: ${node.operator}`);
+		}
+	}
+
+	evaluateLogicalExpression(node) {
+		switch (node.operator) {
+			case '&&': {
+				const left = this.evaluate(node.left);
+				return left ? this.evaluate(node.right) : left;
+			}
+			case '||': {
+				const left = this.evaluate(node.left);
+				return left ? left : this.evaluate(node.right);
+			}
+			case '??': {
+				const left = this.evaluate(node.left);
+				return left !== null && left !== undefined ? left : this.evaluate(node.right);
+			}
+			default:
+				throw new Error(`Unsupported logical operator: ${node.operator}`);
+		}
+	}
+
+	evaluateObjectExpression(node) {
+		const obj = {};
+		node.properties.forEach(property => {
+			const key = this.evaluatePropertyKey(property.key);
+			obj[key] = this.evaluate(property.value);
+		});
+		return obj;
+	}
+
+	evaluatePropertyKey(node) {
+		if (node.type === 'Identifier') {
+			return node.value;
+		}
+		return node.value;
+	}
+
+	evaluateConditionalExpression(node) {
+		const test = this.evaluate(node.test);
+		return test ? this.evaluate(node.consequent) : this.evaluate(node.alternate);
+	}
+}
+
+class ExpressionParser {
+	constructor(options = {}) {
+		this.options = { cache: options.cache !== false, ...options };
+		this.astCache = new Map();
+		this.valueCache = new Map();
+	}
+
+	tokenize(expression) {
+		return new Tokenizer(expression).tokenize();
+	}
+
+	parse(expression, options = this.options) {
+		const useCache = this.shouldUseCache(options);
+		if (useCache && this.astCache.has(expression)) {
+			return this.astCache.get(expression);
+		}
+		const tokens = this.tokenize(expression);
+		if (!tokens.length) {
+			throw new Error('Empty expression');
+		}
+		const parser = new Parser(tokens);
+		const ast = parser.parse();
+		Object.defineProperty(ast, 'tokens', {
+			value: tokens,
+			enumerable: false,
+			configurable: true
+		});
+		if (useCache) {
+			this.astCache.set(expression, ast);
+		}
+		return ast;
+	}
+
+	evaluate(expression, context = {}, options = {}) {
+		const mergedOptions = this.mergeOptions(options);
+		const useCache = this.shouldUseCache(mergedOptions);
+		if (useCache) {
+			const cached = this.getCachedValue(expression, context, mergedOptions);
+			if (cached.hit) {
+				return cached.value;
+			}
+		}
+		const ast = this.parse(expression, mergedOptions);
+		const evaluator = new Evaluator(context, mergedOptions);
+		const result = evaluator.evaluate(ast);
+		if (useCache) {
+			this.storeCachedValue(expression, context, result, mergedOptions);
+		}
+		return result;
+	}
+
+	shouldUseCache(options) {
+		return options.cache !== false;
+	}
+
+	mergeOptions(override = {}) {
+		const base = this.options || {};
+		const helpers = { ...(base.helpers || {}), ...(override.helpers || {}) };
+		const allowedFunctions = new Set([
+			...((base.allowedFunctions) || []),
+			...((override.allowedFunctions) || [])
+		]);
+		return {
+			...base,
+			...override,
+			helpers,
+			allowedFunctions: Array.from(allowedFunctions)
+		};
+	}
+
+	getCachedValue(expression, context, options) {
+		const bucket = this.valueCache.get(expression);
+		if (!bucket) {
+			return { hit: false };
+		}
+		if (this.isObjectLike(context)) {
+			if (bucket.objectCache && bucket.objectCache.has(context)) {
+				return { hit: true, value: bucket.objectCache.get(context) };
+			}
+			return { hit: false };
+		}
+		const key = this.resolvePrimitiveKey(context, options);
+		if (key === undefined) {
+			return { hit: false };
+		}
+		if (bucket.primitiveCache && bucket.primitiveCache.has(key)) {
+			return { hit: true, value: bucket.primitiveCache.get(key) };
+		}
+		return { hit: false };
+	}
+
+	storeCachedValue(expression, context, value, options) {
+		let bucket = this.valueCache.get(expression);
+		if (!bucket) {
+			bucket = { objectCache: new WeakMap(), primitiveCache: new Map() };
+			this.valueCache.set(expression, bucket);
+		}
+		if (this.isObjectLike(context)) {
+			bucket.objectCache.set(context, value);
+			return;
+		}
+		const key = this.resolvePrimitiveKey(context, options);
+		if (key === undefined) {
+			return;
+		}
+		bucket.primitiveCache.set(key, value);
+	}
+
+	resolvePrimitiveKey(context, options) {
+		if (options.cacheKeyResolver) {
+			return options.cacheKeyResolver(context);
+		}
+		return context;
+	}
+
+	isObjectLike(value) {
+		return value !== null && (typeof value === 'object' || typeof value === 'function');
+	}
+
+}
+
 const lang_mini_props = {
 	each,
 	is_array,
@@ -2734,7 +3575,8 @@ const lang_mini_props = {
 	field,
 	prop,
 	Data_Type,
-	Functional_Data_Type
+	Functional_Data_Type,
+	ExpressionParser
 };
 
 const lang_mini = new Evented_Class();

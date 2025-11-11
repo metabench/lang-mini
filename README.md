@@ -29,12 +29,14 @@ Lang-mini is a lightweight, zero-runtime-dependency JavaScript toolkit that powe
    - [Runtime type system](#runtime-type-system)
    - [Events & data binding](#events--data-binding)
    - [Grammar-driven inference (WIP)](#grammar-driven-inference-wip)
-4. [API highlights](#api-highlights)
-5. [Usage patterns & examples](#usage-patterns--examples)
-6. [Project layout](#project-layout)
-7. [Testing & development](#testing--development)
-8. [Status & roadmap notes](#status--roadmap-notes)
-9. [License](#license)
+4. [Reactive models & events](#reactive-models--events)
+5. [Detailed feature guide](#detailed-feature-guide)
+6. [API highlights](#api-highlights)
+6. [Usage patterns & examples](#usage-patterns--examples)
+7. [Project layout](#project-layout)
+8. [Testing & development](#testing--development)
+9. [Status & roadmap notes](#status--roadmap-notes)
+10. [License](#license)
 
 ---
 
@@ -149,6 +151,18 @@ npm install lang-mini
 - `grammar.tof(value)` – Infers the matching definition name (e.g. `'user_login'`).
 - `grammar.sig(value)` – Resolves plural forms (`'users'`, `'locations'`).
 - Some deeper methods in `Grammar` are still marked `NYI`; expect evolution in future releases.
+
+---
+
+## Reactive models & events
+
+Reactive behavior is built into the library through `Evented_Class`, `eventify`, `field`, `prop`, and `Functional_Data_Type`. The combination lets you turn plain objects into observable models, add typed fields, and hook change events without pulling in a heavier framework. Check `docs/Reactive_Models.md` for the full guide and usage examples.
+
+---
+
+## Detailed feature guide
+
+The helpers highlighted under “core concepts” are unpacked at `docs/Core_Features.md`. That guide includes short examples for the collection utilities, polymorphic dispatch helpers, signature detectors, runtime type layer, and grammar/combinator building blocks.
 
 ---
 
@@ -320,6 +334,7 @@ npm run test:legacy
 - No production dependencies; `fnl` and `jest` are dev-only.
 - Several `Grammar` and advanced type-system methods are intentionally marked `NYI`; contributions welcome but coordinate via `AI-NOTES.md` first.
 - Roadmap items such as richer type representations and additional documentation live in `AI-README.md` and `roadmap.md`.
+- Keep up with the current focus areas in `docs/Whats_Next.md`, which consolidates the remaining gaps and suggested next steps for lang-mini.
 
 ---
 

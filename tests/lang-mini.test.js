@@ -445,8 +445,23 @@ describe('lang-mini - Type Detection', () => {
         });
     });
 
-    // Note: sig() function tests removed - <BUG2>: sig() is not implemented/exported
-    // The deep_sig() function provides similar functionality for nested structures
+    describe('sig (signature helper)', () => {
+        test('generates deep signature by default', () => {
+            expect(langMini.sig([1, 'a', true])).toBe('[n,s,b]');
+        });
+
+        test('supports limiting depth with numeric argument', () => {
+            expect(langMini.sig([1, [2, 3]], 0)).toBe('[n,a]');
+        });
+
+        test('supports flat signature option', () => {
+            expect(langMini.sig([1, 2], { flat: true })).toBe('a');
+        });
+
+        test('supports explicit array depth option', () => {
+            expect(langMini.sig([1, [2, 3]], { arr_depth: 2 })).toBe('[n,[n,n]]');
+        });
+    });
 });
 
 describe('lang-mini - Functional Programming', () => {

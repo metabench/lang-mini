@@ -7,7 +7,7 @@ This document tracks identified bugs during testing. Each bug is assigned a uniq
 ## Bug List
 
 - `<BUG1>` - Clone function doesn't perform true deep copy - **FIXED** ✅
-- `<BUG2>` - Missing `sig()` function (not exported or implemented)
+- `<BUG2>` - Missing `sig()` function (not exported or implemented) - **FIXED** ✅
 - `<BUG3>` - `mfp()` signature matching fails for array arguments with nested signatures
 - `<BUG4>` - `each()` stop function doesn't prevent current item from being processed - **FIXED** ✅
 
@@ -31,13 +31,7 @@ This document tracks identified bugs during testing. Each bug is assigned a uniq
 
 **Description:** The `sig()` function is referenced in tests and potentially in documentation, but it doesn't appear to be implemented or exported. Tests calling `langMini.sig()` fail with "sig is not a function".
 
-**Test Evidence:**
-```javascript
-TypeError: langMini.sig is not a function
-  at Object.sig (tests/lang-mini.test.js:423:37)
-```
-
-**Potential Fix:** Either implement the `sig()` function for generating signatures from arrays/values, or remove references to it from documentation and tests. The function `deep_sig()` exists and may provide similar functionality.
+**Resolution:** Implemented `sig()` as a public helper that delegates to `deep_sig()` by default, with optional controls for shallow signatures. Updated exports and added Jest coverage in `tests/lang-mini.test.js` to confirm default deep behavior, numeric depth overrides, and flat/array-depth options.
 
 ---
 

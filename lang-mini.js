@@ -438,6 +438,25 @@ const trim_sig_brackets = function (sig) {
 		}
 	}
 };
+const sig = (item, opts) => {
+	if (typeof opts === 'number') {
+		return deep_sig(item, opts);
+	}
+	if (opts && typeof opts === 'object') {
+		const { max_depth, depth, arr_depth, flat } = opts;
+		if (typeof arr_depth === 'number') {
+			return get_item_sig(item, arr_depth);
+		}
+		if (flat === true) {
+			return get_item_sig(item);
+		}
+		const depth_limit = typeof max_depth === 'number' ? max_depth : (typeof depth === 'number' ? depth : undefined);
+		if (typeof depth_limit === 'number') {
+			return deep_sig(item, depth_limit);
+		}
+	}
+	return deep_sig(item);
+};
 const arr_trim_undefined = function (arr_like) {
 	let res = [];
 	let last_defined = -1;
@@ -3560,6 +3579,7 @@ const lang_mini_props = {
 	mapify,
 	str_arr_mapify,
 	get_a_sig,
+	sig,
 	deep_sig,
 	get_item_sig,
 	set_vals,

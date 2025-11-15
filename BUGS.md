@@ -6,7 +6,7 @@ This document tracks identified bugs during testing. Each bug is assigned a uniq
 
 ## Bug List
 
-- `<BUG1>` - Clone function doesn't perform true deep copy
+- `<BUG1>` - Clone function doesn't perform true deep copy - **FIXED** ✅
 - `<BUG2>` - Missing `sig()` function (not exported or implemented)
 - `<BUG3>` - `mfp()` signature matching fails for array arguments with nested signatures
 - `<BUG4>` - `each()` stop function doesn't prevent current item from being processed - **FIXED** ✅
@@ -15,21 +15,13 @@ This document tracks identified bugs during testing. Each bug is assigned a uniq
 
 ## Bug Details
 
-### <BUG1> Clone function doesn't perform true deep copy
+### <BUG1> Clone function doesn't perform true deep copy - **FIXED** ✅
 
 **Location:** `lang-mini.js` - `clone()` function
 
-**Description:** The `clone()` function only performs a shallow copy. When cloning nested objects or arrays, the nested structures are still references to the original, not independent copies.
+**Description:** The `clone()` function previously performed only a shallow copy. Nested objects, arrays, dates, and buffers were still references to the original values.
 
-**Test Evidence:**
-```javascript
-const original = { a: 1, b: { c: 2 } };
-const cloned = langMini.clone(original);
-cloned.b.c = 99;
-// original.b.c is now 99 (they share the same nested object)
-```
-
-**Potential Fix:** Implement recursive cloning for nested structures, or document this as expected behavior (shallow copy only).
+**Resolution:** `clone()` now recursively copies nested arrays and objects, and performs value copies for built-in types like `Date`, `RegExp`, `Buffer`, and `Error` instances.
 
 ---
 

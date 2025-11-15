@@ -151,13 +151,40 @@ describe('lang-mini - Core Utilities', () => {
             expect(cloned).toEqual({ a: 1, b: 2 });
         });
 
-        test('clones nested objects (shallow copy limitation)', () => {
+        test('deep clones nested objects and arrays', () => {
             const original = { a: [1, 2], b: { c: 3 } };
             const cloned = langMini.clone(original);
             expect(cloned).toEqual(original);
-            original.a.push(4);
-            // <BUG1> clone does not perform deep copy of nested arrays/objects
-            // cloned.a will also have 4 pushed
+            cloned.a.push(4);
+            cloned.b.c = 4;
+            expect(original.a).toEqual([1, 2]);
+            expect(original.b).toEqual({ c: 3 });
+        });
+
+        test('clones Date instances by value', () => {
+            const original = new Date('2020-01-01T00:00:00Z');
+            const cloned = langMini.clone(original);
+            expect(cloned).not.toBe(original);
+            expect(cloned.getTime()).toBe(original.getTime());
+            cloned.setFullYear(2021);
+            expect(original.getFullYear()).toBe(2020);
+        });
+
+        test('clones regular expressions', () => {
+            const original = /hello/gi;
+            const cloned = langMini.clone(original);
+            expect(cloned).not.toBe(original);
+            expect(cloned.source).toBe(original.source);
+            expect(cloned.flags).toBe(original.flags);
+        });
+
+        test('clones buffers without sharing references', () => {
+            const original = Buffer.from([1, 2, 3]);
+            const cloned = langMini.clone(original);
+            expect(cloned).not.toBe(original);
+            expect(Buffer.compare(cloned, original)).toBe(0);
+            cloned[0] = 9;
+            expect(original[0]).toBe(1);
         });
     });
 

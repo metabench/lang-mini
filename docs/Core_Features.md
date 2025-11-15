@@ -82,4 +82,5 @@ console.log(apparel.length); // → 12
 ## Further reading
 - `[Expression Parser](Expression_Parser.md)` – tokenizer/parser/evaluator architecture.
 - `[Reactive Models](Reactive_Models.md)` – evented helpers, `field`, `prop`, and typed fields.
+- `[Async Coordination](Async_Coordination.md)` – callback orchestration, concurrency controls, and readiness helpers.
 

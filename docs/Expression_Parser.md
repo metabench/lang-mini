@@ -63,7 +63,7 @@ Source Expression
 | `ExpressionParser`    | Public API that coordinates parsing, evaluation, caching, and options     |
 
 ## Tokenizer Highlights
-The tokenizer now differentiates between literal keywords and operator keywords so relational and unary productions receive the correct token types. It also normalizes multi-character operators up front.
+The tokenizer now differentiates between literal keywords and operator keywords so relational and unary productions receive the correct token types. It also normalizes multi-character operators up front and records line/column locations on every token so `ExpressionParserError` instances can surface useful diagnostics. Unexpected characters, arrow functions, and spread syntax immediately raise `ExpressionParserError` instances with the offending location.
 
 ```javascript
 const KEYWORD_LITERALS = new Set(['true', 'false', 'null', 'undefined']);
@@ -174,25 +174,32 @@ class Evaluator {
 ```
 
 ## Facade and Caching
-`ExpressionParser` exposes the public API. Caching is careful to avoid serializing eventified objects or sharing mutable state across evaluations.
+`ExpressionParser` exposes the public API and now ships with a small `ExpressionCache` helper that enforces an LRU eviction policy (configurable via `cacheSize`, default `64`). The facade provides:
+- `tokenize(expression)` for debugging
+- `parse(expression, options)` returning the AST (with cached tokens)
+- `evaluate(expression, context, options)` as before, but now guarded by policy hooks
+- `compile(expression, options)` which returns a callable function that reuses the cached AST
+
+Caching is careful to avoid serializing eventified objects or sharing mutable state across evaluations:
 - ASTs are cached per expression string after the tokenizer/parser run
-- Value caches are stored per expression; each expression maps either to a `WeakMap` (for object contexts) or a `Map` (for primitive contexts via a custom `cacheKeyResolver`)
+- Value caches are stored per expression; each bucket keeps a `WeakMap` (for object contexts) plus a primitive `Map` keyed by `cacheKeyResolver`
 - Cache lookups bail out when caching is disabled or when a resolver returns `undefined`
 
 ```javascript
 storeCachedValue(expression, context, value, options) {
-    if (!options.cache) return;
+    if (!this.shouldUseCache(options)) return;
     let bucket = this.valueCache.get(expression);
     if (!bucket) {
-        bucket = (context && typeof context === 'object') ? new WeakMap() : new Map();
+        bucket = { objectCache: new WeakMap(), primitiveCache: new Map() };
         this.valueCache.set(expression, bucket);
     }
-    if (context && typeof context === 'object') {
-        bucket.set(context, value);
-    } else {
-        const key = options.cacheKeyResolver ? options.cacheKeyResolver(context) : context;
-        bucket.set(key, value);
+    if (this.isObjectLike(context)) {
+        bucket.objectCache.set(context, value);
+        return;
     }
+    const key = this.resolvePrimitiveKey(context, options);
+    if (key === undefined) return;
+    bucket.primitiveCache.set(key, value);
 }
 ```
 
@@ -205,10 +212,18 @@ const parser = new ExpressionParser({
 });
 ```
 
+## Guardrails
+- **Identifier restrictions** – `this` and `new` are syntax errors; additional identifiers can be disallowed via options.
+- **Member depth** – deep chains such as `a.b.c.d` are rejected once they exceed `maxMemberDepth` (default `2`).
+- **Allowed globals** – only `Math` is accessible by default. Use `allowedGlobals` to expose more, and `allowedFunctions`/`allowCall` to authorise callable members.
+- **Expression length** – inputs longer than `maxExpressionLength` throw `ExpressionParserError('EXPRESSION_TOO_LONG', ...)`.
+- **Error types** – the tokenizer, parser, and evaluator all throw `ExpressionParserError` with a `code` and optional `{ location }` payload for better reporting.
+
 ## Security and Integration Notes
 - **Function call policy**  only a safe built-in set is allowed by default; supply `allowedFunctions` or `allowCall` to approve additional helpers
 - **Context mutation**  `delete` mutates the supplied context; eventify objects if they need to raise change events
 - **Strict mode**  when `strict: true`, unresolved identifiers throw; when false, they return `undefined` and log the error to the console
+- **lang-mini integration** inject helpers from the main bundle to keep the parser decoupled: `new ExpressionParser({ helpers: { each: langMini.each } })`. The class (and `ExpressionParserError`) ship under `require('lang-mini').ExpressionParser` so no circular imports are required.
 
 ## Comparison to Alternatives
 Compared to `eval()`:
@@ -245,6 +260,14 @@ parser.evaluate('clamp(scores[0], 0, 100)', { scores: [-128] }); // -> 0
 parser.evaluate('roles.indexOf("admin") !== -1 ? "Admin" : "User"', user); // -> "Admin"
 ```
 
+### Compiling Expressions
+```javascript
+const parser = new ExpressionParser();
+const getDisplayName = parser.compile('user.first + " " + user.last');
+
+getDisplayName({ user: { first: 'Ada', last: 'Lovelace' } }); // -> "Ada Lovelace"
+```
+
 ### Error Handling Examples
 ```javascript
 // Undefined identifier (strict mode off)
@@ -261,13 +284,12 @@ parser.evaluate('invalid syntax', {}); // Throws: Unexpected token
 - Tokenizer distinguishes literal keywords from operator keywords (`typeof`, `delete`, `in`, `instanceof`)
 - Parser recognises `%`, nullish coalescing, and ternary expressions
 - Evaluator returns correct modulo results and respects the call whitelist hooks
-- Cache tests cover eventified objects, primitive contexts with `cacheKeyResolver`, and scenarios where caching is disabled
+- Cache tests cover eventified objects, primitive contexts with `cacheKeyResolver`, compile-time AST reuse, and scenarios where caching is disabled
 
 ## Next Steps
-1. Embed the parser into `lang-mini.js`, supplying helpers via options instead of importing the whole module
-2. Finalise the default allow-list based on the binding layer's required helpers
-3. Add optional feature gates (or follow-up pull requests) for arrow functions and spread syntax once the tokenizer/parser surface is ready
-4. Publish expression authoring guidelines so template authors stay within the supported grammar
+1. Monitor bundle size impact (target remains <6 KB gzipped for the parser).
+2. Consider optional feature gates (or follow-up pull requests) for arrow functions and spread syntax once the tokenizer/parser surface is ready.
+3. Publish expression authoring guidelines so template authors stay within the supported grammar.
 
 ## Cross-References
 - See `Control_DOM.md` for DOM integration patterns.

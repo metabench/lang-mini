@@ -25,7 +25,8 @@
    - Provides hooks for user-defined functions, with guardrails against unbounded recursion.
 4. **Facade (`ExpressionParser`)**
    - Public API bridging tokenizer, parser, evaluator, caching, and policy enforcement.
-   - Exposes `parse(expression)`, `evaluate(expression, context)`, `compile(expression)` returning cached functions.
+   - Exposes `tokenize(expression)`, `parse(expression)`, `evaluate(expression, context)`, and `compile(expression)` returning cached functions.
+   - Maintains a small LRU cache for ASTs and value buckets; configurable via `cacheSize` with per-evaluation overrides such as `cacheKeyResolver`.
 5. **Cache Layer (`ExpressionCache`)**
    - Simple LRU with configurable size (default 64 entries) implemented in ~30 LOC.
    - Avoids `Map` polyfills by assuming modern environments while falling back gracefully.
@@ -37,13 +38,13 @@
 
 ## Error Handling Strategy
 - Throw `ExpressionParserError` with `code`, `message`, and `details` (line/column hints).
-- Parser detects unexpected tokens and mismatched delimiters early.
-- Evaluator validates operator availability before execution.
+- Parser detects unexpected tokens, mismatched delimiters, and member-depth violations early.
+- Evaluator validates operator availability before execution and reports undefined identifiers consistently.
 
 ## Security Guardrails
 - Disallow `this`, `new`, direct property chains beyond configured depth (default 2) to keep evaluation safe.
-- Provide allowlist for global identifiers; default set limited to math helpers.
-- Reject expressions exceeding configurable length (default 10k chars).
+- Provide allowlist for global identifiers; default set limited to math helpers, with explicit `allowedGlobals`/`allowedFunctions` overrides.
+- Reject expressions exceeding configurable length (default 10k chars) and surface parser locations for all failures.
 
 ## Testing Alignment
 - Map existing Jest suite sections to planned modules:

@@ -2715,12 +2715,77 @@ const PUNCTUATION_CHARS = new Set(['(', ')', '{', '}', '[', ']', ',', ':', '?', 
 const GLOBAL_SCOPE = typeof globalThis !== 'undefined'
 	? globalThis
 	: (typeof self !== 'undefined' ? self : (typeof window !== 'undefined' ? window : {}));
+const DEFAULT_ALLOWED_GLOBALS = ['Math'];
+const EXPRESSION_PARSER_DEFAULTS = {
+	cache: true,
+	cacheSize: 64,
+	cacheKeyResolver: null,
+	maxExpressionLength: 10000,
+	maxMemberDepth: 2,
+	helpers: {},
+	allowedFunctions: [],
+	allowedGlobals: DEFAULT_ALLOWED_GLOBALS,
+	allowCall: null,
+	strict: false
+};
+const NORMALIZED_OPTIONS_FLAG = Symbol('ExpressionParserOptions');
+const DISALLOWED_IDENTIFIERS = new Set(['this', 'new']);
+
+class ExpressionParserError extends Error {
+	constructor(code, message, details = {}) {
+		super(message);
+		this.name = 'ExpressionParserError';
+		this.code = code;
+		this.details = details;
+	}
+}
+
+class ExpressionCache {
+	constructor(limit = 0) {
+		this.limit = Math.max(0, limit || 0);
+		this.map = new Map();
+	}
+
+	get(key) {
+		if (!this.limit || !this.map.has(key)) {
+			return undefined;
+		}
+		const value = this.map.get(key);
+		this.map.delete(key);
+		this.map.set(key, value);
+		return value;
+	}
+
+	set(key, value) {
+		if (!this.limit) {
+			return;
+		}
+		if (this.map.has(key)) {
+			this.map.delete(key);
+		}
+		this.map.set(key, value);
+		while (this.map.size > this.limit) {
+			const oldestKey = this.map.keys().next().value;
+			this.map.delete(oldestKey);
+		}
+	}
+
+	clear() {
+		this.map.clear();
+	}
+
+	get size() {
+		return this.map.size;
+	}
+}
 
 class Tokenizer {
 	constructor(expression) {
-		this.expression = expression || '';
+		this.expression = typeof expression === 'string' ? expression : String(expression || '');
 		this.length = this.expression.length;
 		this.position = 0;
+		this.line = 1;
+		this.column = 1;
 	}
 
 	tokenize() {
@@ -2743,7 +2808,7 @@ class Tokenizer {
 			} else if (PUNCTUATION_CHARS.has(ch)) {
 				tokens.push(this.tokenizePunctuation());
 			} else {
-				throw new Error(`Unexpected character: ${ch}`);
+				this.throwError('TOKEN_INVALID_CHAR', `Unexpected character: ${ch}`);
 			}
 		}
 		return tokens;
@@ -2751,15 +2816,6 @@ class Tokenizer {
 
 	isAtEnd() {
 		return this.position >= this.length;
-	}
-
-	peek(offset = 0) {
-		if (this.position + offset >= this.length) return '\0';
-		return this.expression[this.position + offset];
-	}
-
-	advance() {
-		return this.expression[this.position++];
 	}
 
 	skipWhitespace() {
@@ -2792,6 +2848,37 @@ class Tokenizer {
 		}
 	}
 
+	peek(offset = 0) {
+		if (this.position + offset >= this.length) return '\0';
+		return this.expression[this.position + offset];
+	}
+
+	advance() {
+		if (this.isAtEnd()) {
+			return '\0';
+		}
+		const char = this.expression[this.position++];
+		if (char === '\n') {
+			this.line += 1;
+			this.column = 1;
+		} else {
+			this.column += 1;
+		}
+		return char;
+	}
+
+	getLocationSnapshot() {
+		return { index: this.position, line: this.line, column: this.column };
+	}
+
+	createToken(type, value, start, end) {
+		return { type, value, start, end };
+	}
+
+	throwError(code, message) {
+		throw new ExpressionParserError(code, message, { location: this.getLocationSnapshot() });
+	}
+
 	isIdentifierStart(ch) {
 		return /[A-Za-z_$]/.test(ch);
 	}
@@ -2806,7 +2893,7 @@ class Tokenizer {
 
 	isOperatorStart(ch) {
 		if (ch === '.' && this.peek(1) === '.' && this.peek(2) === '.') {
-			throw new Error('Spread syntax is not supported');
+			this.throwError('SYNTAX_UNSUPPORTED', 'Spread syntax is not supported');
 		}
 		if (ch === '?' && this.peek(1) === '?') {
 			return true;
@@ -2815,20 +2902,23 @@ class Tokenizer {
 	}
 
 	tokenizeIdentifier() {
+		const start = this.getLocationSnapshot();
 		let value = '';
 		while (!this.isAtEnd() && this.isIdentifierPart(this.peek())) {
 			value += this.advance();
 		}
+		const end = this.getLocationSnapshot();
 		if (KEYWORD_LITERALS.has(value)) {
-			return { type: 'KEYWORD', value };
+			return this.createToken('KEYWORD', value, start, end);
 		}
 		if (KEYWORD_OPERATORS.has(value)) {
-			return { type: 'OPERATOR', value };
+			return this.createToken('OPERATOR', value, start, end);
 		}
-		return { type: 'IDENTIFIER', value };
+		return this.createToken('IDENTIFIER', value, start, end);
 	}
 
 	tokenizeNumber() {
+		const start = this.getLocationSnapshot();
 		let value = '';
 		let hasDot = false;
 		while (!this.isAtEnd()) {
@@ -2842,16 +2932,18 @@ class Tokenizer {
 				break;
 			}
 		}
-		return { type: 'NUMBER', value: Number(value) };
+		const end = this.getLocationSnapshot();
+		return this.createToken('NUMBER', Number(value), start, end);
 	}
 
 	tokenizeString() {
 		const quote = this.advance();
+		const start = this.getLocationSnapshot();
 		let value = '';
 		while (!this.isAtEnd()) {
 			const ch = this.advance();
 			if (ch === quote) {
-				return { type: 'STRING', value };
+				return this.createToken('STRING', value, start, this.getLocationSnapshot());
 			}
 			if (ch === '\\') {
 				const next = this.advance();
@@ -2868,52 +2960,61 @@ class Tokenizer {
 				value += ch;
 			}
 		}
-		throw new Error('Unterminated string literal');
+		this.throwError('TOKEN_UNTERMINATED_STRING', 'Unterminated string literal');
 	}
 
 	tokenizeOperator() {
 		const remaining = this.expression.slice(this.position);
+		const start = this.getLocationSnapshot();
 		for (const op of MULTI_CHAR_OPERATORS) {
 			if (remaining.startsWith(op)) {
 				if (op === '=>') {
-					throw new Error('Arrow functions are not supported');
+					this.throwError('SYNTAX_UNSUPPORTED', 'Arrow functions are not supported');
 				}
 				this.position += op.length;
-				return { type: 'OPERATOR', value: op };
+				this.column += op.length;
+				return this.createToken('OPERATOR', op, start, this.getLocationSnapshot());
 			}
 		}
 		const ch = this.advance();
 		if (ch === '=' && this.peek() === '>') {
-			throw new Error('Arrow functions are not supported');
+			this.throwError('SYNTAX_UNSUPPORTED', 'Arrow functions are not supported');
 		}
 		if (!SINGLE_CHAR_OPERATORS.has(ch) && ch !== '?') {
-			throw new Error('Unexpected operator');
+			this.throwError('TOKEN_UNEXPECTED_OPERATOR', 'Unexpected operator');
 		}
-		return { type: 'OPERATOR', value: ch };
+		return this.createToken('OPERATOR', ch, start, this.getLocationSnapshot());
 	}
 
 	tokenizePunctuation() {
+		const start = this.getLocationSnapshot();
 		const ch = this.advance();
 		if (ch === '.' && this.peek() === '.' && this.peek(1) === '.') {
-			throw new Error('Spread syntax is not supported');
+			this.throwError('SYNTAX_UNSUPPORTED', 'Spread syntax is not supported');
 		}
-		return { type: 'PUNCTUATION', value: ch };
+		return this.createToken('PUNCTUATION', ch, start, this.getLocationSnapshot());
 	}
 }
 
 class Parser {
-	constructor(tokens) {
+	constructor(tokens, options = {}) {
 		this.tokens = tokens;
 		this.pos = 0;
+		this.maxMemberDepth = options.maxMemberDepth || EXPRESSION_PARSER_DEFAULTS.maxMemberDepth;
+		const disallowed = new Set(DISALLOWED_IDENTIFIERS);
+		if (options.disallowedIdentifiers) {
+			options.disallowedIdentifiers.forEach(identifier => disallowed.add(identifier));
+		}
+		this.disallowedIdentifiers = disallowed;
 	}
 
 	parse() {
 		if (!this.tokens.length) {
-			throw new Error('Empty expression');
+			throw new ExpressionParserError('EMPTY_EXPRESSION', 'Empty expression');
 		}
 		const ast = this.parseExpression();
 		if (!this.isAtEnd()) {
-			throw new Error(`Unexpected token: ${this.peek().value}`);
+			this.error('UNEXPECTED_TOKEN', `Unexpected token: ${this.peek().value}`, this.peek());
 		}
 		return ast;
 	}
@@ -2970,7 +3071,7 @@ class Parser {
 
 	parseEqualityExpression() {
 		let expr = this.parseRelationalExpression();
-		while (this.matchOperator('==', '!=', '===', '!==')) {
+		while (this.matchOperator('===', '!==', '==', '!=')) {
 			const operator = this.previous().value;
 			const right = this.parseRelationalExpression();
 			expr = this.buildBinaryExpression(operator, expr, right);
@@ -2979,8 +3080,18 @@ class Parser {
 	}
 
 	parseRelationalExpression() {
+		let expr = this.parseShiftExpression();
+		while (this.matchOperator('<', '>', '<=', '>=', 'instanceof', 'in')) {
+			const operator = this.previous().value;
+			const right = this.parseShiftExpression();
+			expr = this.buildBinaryExpression(operator, expr, right);
+		}
+		return expr;
+	}
+
+	parseShiftExpression() {
 		let expr = this.parseAdditiveExpression();
-		while (this.matchOperator('<', '>', '<=', '>=', 'in', 'instanceof')) {
+		while (this.matchOperator('<<', '>>', '>>>')) {
 			const operator = this.previous().value;
 			const right = this.parseAdditiveExpression();
 			expr = this.buildBinaryExpression(operator, expr, right);
@@ -3021,22 +3132,30 @@ class Parser {
 		let expr = this.parsePrimaryExpression();
 		while (true) {
 			if (this.matchPunctuation('.')) {
+				const operatorToken = this.previous();
 				const property = this.consumePropertyIdentifier();
+				const depth = this.getChainDepth(expr) + 1;
+				this.assertMemberDepth(depth, operatorToken);
 				expr = {
 					type: 'MemberExpression',
 					object: expr,
 					property,
 					computed: false
 				};
+				this.setChainDepth(expr, depth);
 			} else if (this.matchPunctuation('[')) {
+				const operatorToken = this.previous();
 				const property = this.parseExpression();
 				this.consume('PUNCTUATION', ']');
+				const depth = this.getChainDepth(expr) + 1;
+				this.assertMemberDepth(depth, operatorToken);
 				expr = {
 					type: 'MemberExpression',
 					object: expr,
 					property,
 					computed: true
 				};
+				this.setChainDepth(expr, depth);
 			} else if (this.matchPunctuation('(')) {
 				const args = this.parseArguments();
 				expr = {
@@ -3044,6 +3163,7 @@ class Parser {
 					callee: expr,
 					arguments: args
 				};
+				this.setChainDepth(expr, this.getChainDepth(expr.callee));
 			} else {
 				break;
 			}
@@ -3054,7 +3174,7 @@ class Parser {
 	parsePrimaryExpression() {
 		const token = this.peek();
 		if (!token) {
-			throw new Error('Unexpected end of expression');
+			this.error('UNEXPECTED_END', 'Unexpected end of expression', token);
 		}
 		if (token.type === 'NUMBER' || token.type === 'STRING') {
 			this.advance();
@@ -3066,6 +3186,7 @@ class Parser {
 		}
 		if (token.type === 'IDENTIFIER') {
 			this.advance();
+			this.assertIdentifierAllowed(token);
 			return { type: 'Identifier', value: token.value };
 		}
 		if (this.matchPunctuation('(')) {
@@ -3096,7 +3217,7 @@ class Parser {
 			this.consume('PUNCTUATION', '}');
 			return { type: 'ObjectExpression', properties };
 		}
-		throw new Error(`Unexpected token: ${token.value}`);
+		this.error('UNEXPECTED_TOKEN', `Unexpected token: ${token.value}`, token);
 	}
 
 	parsePropertyKey() {
@@ -3110,7 +3231,7 @@ class Parser {
 			const value = token.type === 'KEYWORD' ? this.literalFromKeyword(token.value) : token.value;
 			return { type: 'Literal', value };
 		}
-		throw new Error('Invalid object property key');
+		this.error('INVALID_OBJECT_KEY', 'Invalid object property key', token);
 	}
 
 	parseArguments() {
@@ -3139,7 +3260,7 @@ class Parser {
 			return this.advance();
 		}
 		const expected = value ? `${type} '${value}'` : type;
-		throw new Error(`Expected ${expected}`);
+		this.error('MISSING_TOKEN', `Expected ${expected}`, this.peek());
 	}
 
 	check(type, value) {
@@ -3177,7 +3298,7 @@ class Parser {
 			const value = token.type === 'KEYWORD' ? this.literalFromKeyword(token.value) : token.value;
 			return { type: 'Literal', value };
 		}
-		throw new Error('Expected property name');
+		this.error('INVALID_PROPERTY', 'Expected property name', token);
 	}
 
 	buildBinaryExpression(operator, left, right) {
@@ -3186,6 +3307,40 @@ class Parser {
 
 	buildLogicalExpression(operator, left, right) {
 		return { type: 'LogicalExpression', operator, left, right };
+	}
+
+	getChainDepth(node) {
+		if (!node || typeof node !== 'object') {
+			return 0;
+		}
+		return node.__chainDepth || 0;
+	}
+
+	setChainDepth(node, depth) {
+		if (!node || typeof node !== 'object') {
+			return;
+		}
+		Object.defineProperty(node, '__chainDepth', {
+			value: depth,
+			enumerable: false,
+			configurable: true
+		});
+	}
+
+	assertMemberDepth(depth, token) {
+		if (depth > this.maxMemberDepth) {
+			this.error('MEMBER_DEPTH_EXCEEDED', `Member access depth ${depth} exceeds maximum of ${this.maxMemberDepth}`, token);
+		}
+	}
+
+	assertIdentifierAllowed(token) {
+		if (this.disallowedIdentifiers.has(token.value)) {
+			this.error('DISALLOWED_IDENTIFIER', `Identifier '${token.value}' is not allowed in expressions`, token);
+		}
+	}
+
+	error(code, message, token) {
+		throw new ExpressionParserError(code, message, token ? { location: token.start } : undefined);
 	}
 
 	advance() {
@@ -3216,6 +3371,7 @@ class Evaluator {
 		this.strict = options.strict || false;
 		this.allowCall = options.allowCall || null;
 		this.allowedFunctions = new Set(options.allowedFunctions || []);
+		this.allowedGlobals = new Set(options.allowedGlobals || []);
 		Object.values(this.helpers).forEach(value => {
 			if (typeof value === 'function') {
 				this.allowedFunctions.add(value);
@@ -3235,7 +3391,7 @@ class Evaluator {
 			case 'ArrayExpression': return node.elements.map(element => this.evaluate(element));
 			case 'ObjectExpression': return this.evaluateObjectExpression(node);
 			case 'ConditionalExpression': return this.evaluateConditionalExpression(node);
-			default: throw new Error(`Unsupported AST node type: ${node.type}`);
+			default: throw new ExpressionParserError('UNSUPPORTED_NODE', `Unsupported AST node type: ${node.type}`);
 		}
 	}
 
@@ -3247,11 +3403,11 @@ class Evaluator {
 		if (this.context && Object.prototype.hasOwnProperty.call(this.context, name)) {
 			return this.context[name];
 		}
-		if (name in GLOBAL_SCOPE) {
+		if (this.allowedGlobals.has(name) && name in GLOBAL_SCOPE) {
 			return GLOBAL_SCOPE[name];
 		}
 		if (this.strict) {
-			throw new Error(`Undefined identifier: ${name}`);
+			throw new ExpressionParserError('UNDEFINED_IDENTIFIER', `Undefined identifier: ${name}`);
 		}
 		console.error(`Undefined identifier: ${name}`);
 		return undefined;
@@ -3260,7 +3416,7 @@ class Evaluator {
 	evaluateMemberExpression(node) {
 		const object = this.evaluate(node.object);
 		if (object === null || object === undefined) {
-			throw new Error('Cannot read property of null or undefined');
+			throw new ExpressionParserError('NULL_MEMBER_ACCESS', 'Cannot read property of null or undefined');
 		}
 		const property = node.computed
 			? this.evaluate(node.property)
@@ -3276,7 +3432,7 @@ class Evaluator {
 		if (node.callee.type === 'MemberExpression') {
 			const object = this.evaluate(node.callee.object);
 			if (object === null || object === undefined) {
-				throw new Error('Cannot call property of null or undefined');
+				throw new ExpressionParserError('NULL_MEMBER_CALL', 'Cannot call property of null or undefined');
 			}
 			const property = node.callee.computed
 				? this.evaluate(node.callee.property)
@@ -3290,10 +3446,10 @@ class Evaluator {
 			thisArg = undefined;
 		}
 		if (typeof callee !== 'function') {
-			throw new Error('Attempted to call a non-function');
+			throw new ExpressionParserError('CALL_NON_FUNCTION', 'Attempted to call a non-function');
 		}
 		if (!this.isCallAllowed(callee, thisArg)) {
-			throw new Error('Function call not allowed by policy');
+			throw new ExpressionParserError('CALL_NOT_ALLOWED', 'Function call not allowed by policy');
 		}
 		const args = node.arguments.map(arg => this.evaluate(arg));
 		return callee.apply(thisArg, args);
@@ -3329,14 +3485,14 @@ class Evaluator {
 				return typeof argumentValue;
 			case 'void': return void argumentValue;
 			case 'delete': return this.performDelete(node.argument);
-			default: throw new Error(`Unsupported unary operator: ${node.operator}`);
+			default: throw new ExpressionParserError('UNSUPPORTED_UNARY', `Unsupported unary operator: ${node.operator}`);
 		}
 	}
 
 	isIdentifierDefined(name) {
 		return (Object.prototype.hasOwnProperty.call(this.helpers, name) ||
 			(this.context && Object.prototype.hasOwnProperty.call(this.context, name)) ||
-			name in GLOBAL_SCOPE);
+			(this.allowedGlobals.has(name) && name in GLOBAL_SCOPE));
 	}
 
 	performDelete(argument) {
@@ -3368,8 +3524,8 @@ class Evaluator {
 			case '*': return left * right;
 			case '/': return left / right;
 			case '%': return left % right;
-			case '==': return left == right; // eslint-disable-line eqeqeq
-			case '!=': return left != right; // eslint-disable-line eqeqeq
+			case '==': return left == right;
+			case '!=': return left != right;
 			case '===': return left === right;
 			case '!==': return left !== right;
 			case '<': return left < right;
@@ -3378,7 +3534,7 @@ class Evaluator {
 			case '>=': return left >= right;
 			case 'in': return left in right;
 			case 'instanceof': return left instanceof right;
-			default: throw new Error(`Unsupported binary operator: ${node.operator}`);
+			default: throw new ExpressionParserError('UNSUPPORTED_BINARY', `Unsupported binary operator: ${node.operator}`);
 		}
 	}
 
@@ -3397,7 +3553,7 @@ class Evaluator {
 				return left !== null && left !== undefined ? left : this.evaluate(node.right);
 			}
 			default:
-				throw new Error(`Unsupported logical operator: ${node.operator}`);
+				throw new ExpressionParserError('UNSUPPORTED_LOGICAL', `Unsupported logical operator: ${node.operator}`);
 		}
 	}
 
@@ -3425,25 +3581,31 @@ class Evaluator {
 
 class ExpressionParser {
 	constructor(options = {}) {
-		this.options = { cache: options.cache !== false, ...options };
-		this.astCache = new Map();
-		this.valueCache = new Map();
+		this.options = normalizeOptions(null, options);
+		const cacheLimit = this.options.cache !== false ? this.options.cacheSize : 0;
+		this.astCache = new ExpressionCache(cacheLimit);
+		this.valueCache = new ExpressionCache(cacheLimit);
 	}
 
 	tokenize(expression) {
 		return new Tokenizer(expression).tokenize();
 	}
 
-	parse(expression, options = this.options) {
+	parse(expression, overrideOptions) {
+		const options = this.ensureNormalizedOptions(overrideOptions);
+		this.ensureExpressionLength(expression, options);
 		const useCache = this.shouldUseCache(options);
-		if (useCache && this.astCache.has(expression)) {
-			return this.astCache.get(expression);
+		if (useCache) {
+			const cachedAst = this.astCache.get(expression);
+			if (cachedAst) {
+				return cachedAst;
+			}
 		}
 		const tokens = this.tokenize(expression);
 		if (!tokens.length) {
-			throw new Error('Empty expression');
+			throw new ExpressionParserError('EMPTY_EXPRESSION', 'Empty expression');
 		}
-		const parser = new Parser(tokens);
+		const parser = new Parser(tokens, options);
 		const ast = parser.parse();
 		Object.defineProperty(ast, 'tokens', {
 			value: tokens,
@@ -3456,8 +3618,8 @@ class ExpressionParser {
 		return ast;
 	}
 
-	evaluate(expression, context = {}, options = {}) {
-		const mergedOptions = this.mergeOptions(options);
+	evaluate(expression, context = {}, overrideOptions = {}) {
+		const mergedOptions = this.mergeOptions(overrideOptions);
 		const useCache = this.shouldUseCache(mergedOptions);
 		if (useCache) {
 			const cached = this.getCachedValue(expression, context, mergedOptions);
@@ -3474,23 +3636,42 @@ class ExpressionParser {
 		return result;
 	}
 
-	shouldUseCache(options) {
-		return options.cache !== false;
+	compile(expression, overrideOptions = {}) {
+		const baseOptions = this.mergeOptions(overrideOptions);
+		const ast = this.parse(expression, baseOptions);
+		return (context = {}, runtimeOptions = {}) => {
+			const invocationOptions = this.mergeOptions(runtimeOptions, baseOptions);
+			const evaluator = new Evaluator(context, invocationOptions);
+			return evaluator.evaluate(ast);
+		};
 	}
 
-	mergeOptions(override = {}) {
-		const base = this.options || {};
-		const helpers = { ...(base.helpers || {}), ...(override.helpers || {}) };
-		const allowedFunctions = new Set([
-			...((base.allowedFunctions) || []),
-			...((override.allowedFunctions) || [])
-		]);
-		return {
-			...base,
-			...override,
-			helpers,
-			allowedFunctions: Array.from(allowedFunctions)
-		};
+	shouldUseCache(options) {
+		return options.cache !== false && options.cacheSize > 0;
+	}
+
+	ensureNormalizedOptions(options) {
+		if (options && options[NORMALIZED_OPTIONS_FLAG]) {
+			return options;
+		}
+		if (!options) {
+			return this.options;
+		}
+		return this.mergeOptions(options);
+	}
+
+	ensureExpressionLength(expression, options) {
+		if (expression.length > options.maxExpressionLength) {
+			throw new ExpressionParserError(
+				'EXPRESSION_TOO_LONG',
+				`Expression exceeds maximum length of ${options.maxExpressionLength} characters`
+			);
+		}
+	}
+
+	mergeOptions(override = {}, baseOptions) {
+		const base = baseOptions && baseOptions[NORMALIZED_OPTIONS_FLAG] ? baseOptions : (baseOptions || this.options);
+		return normalizeOptions(base, override);
 	}
 
 	getCachedValue(expression, context, options) {
@@ -3515,6 +3696,9 @@ class ExpressionParser {
 	}
 
 	storeCachedValue(expression, context, value, options) {
+		if (!this.shouldUseCache(options)) {
+			return;
+		}
 		let bucket = this.valueCache.get(expression);
 		if (!bucket) {
 			bucket = { objectCache: new WeakMap(), primitiveCache: new Map() };
@@ -3542,6 +3726,40 @@ class ExpressionParser {
 		return value !== null && (typeof value === 'object' || typeof value === 'function');
 	}
 
+	getCacheStats() {
+		return {
+			astEntries: this.astCache.size,
+			valueEntries: this.valueCache.size
+		};
+	}
+}
+
+function normalizeOptions(baseOptions, overrideOptions = {}) {
+	const base = baseOptions && baseOptions[NORMALIZED_OPTIONS_FLAG]
+		? baseOptions
+		: { ...EXPRESSION_PARSER_DEFAULTS, ...(baseOptions || {}) };
+	const helpers = { ...(base.helpers || {}), ...(overrideOptions.helpers || {}) };
+	const allowedFunctions = new Set([
+		...((base.allowedFunctions) || []),
+		...((overrideOptions.allowedFunctions) || [])
+	]);
+	const allowedGlobals = new Set([
+		...((base.allowedGlobals) || DEFAULT_ALLOWED_GLOBALS),
+		...((overrideOptions.allowedGlobals) || [])
+	]);
+	const normalized = {
+		...EXPRESSION_PARSER_DEFAULTS,
+		...base,
+		...overrideOptions,
+		helpers,
+		allowedFunctions: Array.from(allowedFunctions),
+		allowedGlobals: Array.from(allowedGlobals)
+	};
+	Object.defineProperty(normalized, NORMALIZED_OPTIONS_FLAG, {
+		value: true,
+		enumerable: false
+	});
+	return normalized;
 }
 
 const lang_mini_props = {
@@ -3615,7 +3833,8 @@ const lang_mini_props = {
 	prop,
 	Data_Type,
 	Functional_Data_Type,
-	ExpressionParser
+	ExpressionParser,
+	ExpressionParserError
 };
 
 const lang_mini = new Evented_Class();

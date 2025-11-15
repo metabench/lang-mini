@@ -1004,34 +1004,62 @@ let mapify = (target) => {
 };
 let clone = fp((a, sig) => {
 	let obj = a[0];
-	if (a.l === 1) {
-		if (obj && typeof obj.clone === 'function') {
-			return obj.clone();
-		} else {
-			let t = tof(obj);
-			if (t === 'array') {
-				let res = [];
-				each(obj, v => {
-					res.push(clone(v));
-				});
-				return res;
-			} else if (t === 'undefined') {
-				return undefined;
-			} else if (t === 'string') {
-				return obj;
-			} else if (t === 'number') {
-				return obj;
-			} else if (t === 'function') {
-				return obj;
-			} else if (t === 'boolean') {
-				return obj;
-			} else if (t === 'null') {
-				return obj;
-			} else {
-				return Object.assign({}, obj);
-			}
-		}
-	} else if (a.l === 2 && tof(a[1]) === 'number') {
+        if (a.l === 1) {
+                if (obj && typeof obj.clone === 'function') {
+                        return obj.clone();
+                } else {
+                        let t = tof(obj);
+                        if (t === 'array') {
+                                let res = [];
+                                each(obj, v => {
+                                        res.push(clone(v));
+                                });
+                                return res;
+                        } else if (t === 'undefined') {
+                                return undefined;
+                        } else if (t === 'string') {
+                                return obj;
+                        } else if (t === 'number') {
+                                return obj;
+                        } else if (t === 'function') {
+                                return obj;
+                        } else if (t === 'boolean') {
+                                return obj;
+                        } else if (t === 'null') {
+                                return obj;
+                        } else if (t === 'date') {
+                                return new Date(obj.getTime());
+                        } else if (t === 'regex') {
+                                return new RegExp(obj.source, obj.flags);
+                        } else if (t === 'buffer') {
+                                if (typeof Buffer !== 'undefined' && Buffer.from) {
+                                        return Buffer.from(obj);
+                                } else if (obj && typeof obj.slice === 'function') {
+                                        return obj.slice(0);
+                                } else {
+                                        return obj;
+                                }
+                        } else if (t === 'error') {
+                                const cloned_error = new obj.constructor(obj.message);
+                                cloned_error.name = obj.name;
+                                cloned_error.stack = obj.stack;
+                                each(obj, (value, key) => {
+                                        if (key !== 'message' && key !== 'name' && key !== 'stack') {
+                                                cloned_error[key] = clone(value);
+                                        }
+                                });
+                                return cloned_error;
+                        } else if (t === 'object') {
+                                const res = {};
+                                each(obj, (value, key) => {
+                                        res[key] = clone(value);
+                                });
+                                return res;
+                        } else {
+                                return obj;
+                        }
+                }
+        } else if (a.l === 2 && tof(a[1]) === 'number') {
 		let res = [];
 		for (let c = 0; c < a[1]; c++) {
 			res.push(clone(obj));

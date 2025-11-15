@@ -801,11 +801,20 @@ const mfp = function () {
 		console.log('calling mfp function');
 		console.log('--------------------');
 		console.log('');
-		let mfp_fn_call_deep_sig;
-		let ltof = tof;
-		const lsig = dsig;
-		let ltf = tf;
-		mfp_fn_call_deep_sig = lsig(a2);
+                let mfp_fn_call_deep_sig;
+                let ltof = tof;
+                const lsig = dsig;
+                let ltf = tf;
+                mfp_fn_call_deep_sig = lsig(a2);
+                const mfp_fn_call_shallow_sig = (() => {
+                        if (!a2 || a2.length === 0) return '';
+                        let res = '';
+                        for (let i = 0; i < a2.length; i++) {
+                                if (i > 0) res = res + ',';
+                                res = res + ltf(a2[i]);
+                        }
+                        return res;
+                })();
 		let do_skip = false;
 		if (skip) {
 			if (skip(a2)) {
@@ -813,9 +822,11 @@ const mfp = function () {
 			} else {}
 		}
 		if (!do_skip) {
-			if (inner_map_sig_fns[mfp_fn_call_deep_sig]) {
-				return inner_map_sig_fns[mfp_fn_call_deep_sig].apply(this, a2);
-			} else {
+                        if (inner_map_sig_fns[mfp_fn_call_deep_sig]) {
+                                return inner_map_sig_fns[mfp_fn_call_deep_sig].apply(this, a2);
+                        } else if (mfp_fn_call_shallow_sig && inner_map_sig_fns[mfp_fn_call_shallow_sig]) {
+                                return inner_map_sig_fns[mfp_fn_call_shallow_sig].apply(this, a2);
+                        } else {
 				let idx_last_fn = -1;
 				let idx_last_obj = -1;
 				each(a2, (arg, i_arg) => {

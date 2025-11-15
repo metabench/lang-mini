@@ -503,18 +503,15 @@ describe('lang-mini - Functional Programming', () => {
             expect(concat('Hello', 'World')).toBe('HelloWorld');
         });
 
-        // <BUG3>: mfp signature matching fails for array arguments
-        // When calling with arrays, the deep signature [n,n],[n,n] doesn't match 'a,a'
-        test.skip('handles multiple signatures - SKIPPED due to BUG3', () => {
+        test('handles multiple signatures including arrays', () => {
             const process = langMini.mfp({
                 'n,n': (a, b) => a + b,
                 's,s': (a, b) => `${a}${b}`,
                 'a,a': (a, b) => [...a, ...b]
             });
-            
+
             expect(process(2, 3)).toBe(5);
             expect(process('Hello', 'World')).toBe('HelloWorld');
-            // This fails with: "no signature match found. mfp_fn_call_deep_sig: [n,n],[n,n]"
             expect(process([1, 2], [3, 4])).toEqual([1, 2, 3, 4]);
         });
 

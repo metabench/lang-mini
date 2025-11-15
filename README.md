@@ -32,11 +32,12 @@ Lang-mini is a lightweight, zero-runtime-dependency JavaScript toolkit that powe
 4. [Reactive models & events](#reactive-models--events)
 5. [Detailed feature guide](#detailed-feature-guide)
 6. [API highlights](#api-highlights)
-6. [Usage patterns & examples](#usage-patterns--examples)
-7. [Project layout](#project-layout)
-8. [Testing & development](#testing--development)
-9. [Status & roadmap notes](#status--roadmap-notes)
-10. [License](#license)
+7. [Usage patterns & examples](#usage-patterns--examples)
+8. [Asynchronous coordination](#asynchronous-coordination)
+9. [Project layout](#project-layout)
+10. [Testing & development](#testing--development)
+11. [Status & roadmap notes](#status--roadmap-notes)
+12. [License](#license)
 
 ---
 
@@ -177,6 +178,7 @@ The helpers highlighted under “core concepts” are unpacked at `docs/Core_Fea
 | Data binding | `field`, `prop`, `Functional_Data_Type` | Compose validation, parsing, defaults, and transformations with change events. |
 | Advanced types | `Type_Signifier`, `Type_Representation` | Experimental building blocks for rich type metadata. |
 | Combinatorics | `combinations` (alias: `combos`) | Cartesian product across nested arrays; stops early if any sub-array is empty. |
+| Async coordination | `call_multi`, `call_multiple_callback_functions`, `Fns`, `Publisher` | Mix callback ergonomics with promise-friendly utilities and readiness helpers. |
 
 Full source documentation lives inline within `lang-mini.js`; search for function names to see implementation notes and historical commentary.
 
@@ -278,6 +280,73 @@ geoGrammar.sig([ [ [0,0], [1,1] ], [ [2,2], [3,3] ] ]); // → 'routes'
 ```
 
 > **Tip:** Some advanced grammar APIs remain marked `NYI`; consult inline comments before relying on them in production.
+
+---
+
+## Asynchronous coordination
+
+Lang-mini bundles a tiny but expressive concurrency helper stack for orchestrating callback-heavy workflows without pulling in a promise library. The primitives mirror the asynchronous utilities used throughout the historical jsgui projects and are now fully documented in [`docs/Async_Coordination.md`](docs/Async_Coordination.md).
+
+### `call_multi` & `call_multiple_callback_functions`
+
+- Accepts an array of work items where each item can be a bare function, `[fn, params]`, `[context, fn]`, or `[fn, params, perTaskCallback]`.
+- Optional flags support:
+  - **Parallelism:** pass `lang.call_multi(tasks, parallelism, done)` to limit concurrency.
+  - **Delays:** pass both `parallelism` and `delay` to stagger invocations when throttling external systems.
+  - **Parameter echoing:** `lang.call_multi(tasks, done, true)` returns `[[params], result]` tuples so you can rebuild association tables after asynchronous fan-outs.
+- Errors short-circuit the execution and bubble through the final callback, making it easy to surface failures while still allowing per-task callbacks to run.
+
+```javascript
+const lang = require('lang-mini');
+
+const work = [
+        (cb) => setTimeout(() => cb(null, 'A'), 5),
+        [({ message }, cb) => cb(null, message.toUpperCase()), [{ message: 'b' }]],
+        [
+                (value, cb) => cb(null, value * 2),
+                [21],
+                (err, doubled) => console.log('per-task:', doubled)
+        ]
+];
+
+lang.call_multi(work, 2, 1, (err, results) => {
+        if (err) throw err;
+        console.log(results); // → ['A', { message: 'B' }, 42]
+});
+```
+
+### `Fns.go`
+
+`Fns(arr)` wraps an array of functions and exposes a `.go()` helper that forwards to `call_multi`, preserving the same argument permutations. This is particularly useful when dynamically building pipelines:
+
+```javascript
+const steps = lang.Fns([
+        (cb) => readFile('./input.json', cb),
+        (contents, cb) => cb(null, JSON.parse(contents)),
+        (data, cb) => cb(null, transform(data))
+]);
+
+steps.go((err, [buffer, parsed, transformed]) => {
+        if (err) throw err;
+        console.log(transformed);
+});
+```
+
+### `Publisher`
+
+`Publisher` extends `Evented_Class` and adds a `when_ready` getter that returns a promise resolving once the instance raises `ready`. The helper caches readiness so subsequent calls resolve synchronously, letting you bridge older callback code with modern async/await:
+
+```javascript
+const publisher = new lang.Publisher();
+
+async function ensureReady() {
+        await publisher.when_ready; // waits until publisher.raise('ready')
+        console.log('ready to emit');
+}
+
+ensureReady();
+setTimeout(() => publisher.raise('ready'), 20);
+```
 
 ---
 

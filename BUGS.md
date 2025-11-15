@@ -8,7 +8,7 @@ This document tracks identified bugs during testing. Each bug is assigned a uniq
 
 - `<BUG1>` - Clone function doesn't perform true deep copy - **FIXED** ✅
 - `<BUG2>` - Missing `sig()` function (not exported or implemented)
-- `<BUG3>` - `mfp()` signature matching fails for array arguments with nested signatures
+- `<BUG3>` - `mfp()` signature matching fails for array arguments with nested signatures - **FIXED** ✅
 - `<BUG4>` - `each()` stop function doesn't prevent current item from being processed - **FIXED** ✅
 
 ---
@@ -41,7 +41,7 @@ TypeError: langMini.sig is not a function
 
 ---
 
-### <BUG3> `mfp()` signature matching fails for array arguments
+### <BUG3> `mfp()` signature matching fails for array arguments - **FIXED** ✅
 
 **Location:** `lang-mini.js` - `mfp()` function (around line 850)
 
@@ -63,7 +63,7 @@ Object.keys(inner_map_parsed_sigs) [ 'n,n', 's,s', 'a,a' ]
 mfp_fn_call_deep_sig [n,n],[n,n]
 ```
 
-**Potential Fix:** The signature matching logic needs to support both shallow type signatures ('a,a' for two arrays) and deep signatures ('[n,n],[n,n]' for two arrays of numbers). Consider adding logic to try matching at different signature depth levels, or provide a way to specify which depth level should be used for matching.
+**Resolution:** When a deep signature lookup doesn't find a match, the `mfp()` dispatcher now falls back to matching against a shallow signature composed from the top-level type abbreviations (for example `'a,a'` for two arrays). This allows handlers registered with shallow signatures to execute while retaining support for deep signature matching when available.
 
 ---
 
